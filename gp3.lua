@@ -5,6 +5,7 @@ GuitarPro v3 tab parser.
 2024, Stanislav Mikhel ]]
 
 local utils = require('utils')
+local mapping = require('mapping')
 
 
 local gp3 = {}
@@ -58,9 +59,8 @@ gp3.readInfo = function (self, data)
 end
 
 gp3.readMidiChannels = function (self, data)
-  local ports = {}
+  local channel = {}
   for i = 1, 4 do     -- 4 ports
-    local port = {}
     for j = 1, 16 do  -- 16 channels in each port
       local ch = {}
       ch.instrument = data:int()
@@ -71,11 +71,10 @@ gp3.readMidiChannels = function (self, data)
       ch.phaser     = data:byte()
       ch.tremolo    = data:byte()
       data:skip(2)  -- blank bytes
-      port[j] = ch
+      channel[#channel+1] = ch
     end
-    ports[i] = port
   end
-  return ports
+  return channel
 end
 
 gp3.readMeasureHeader = function (self, data)
@@ -367,6 +366,15 @@ gp3.readGrace = function (self, data)
 end
 
 gp3.readSlides = function (self, data) return {} end
+
+--========================================
+
+gp3.getInstrument = function (self, song, n)
+  local track = song.tracks[n]
+  local index = track.channel[1]
+  local instrument = song.midi[index].instrument
+  return mapping.instruments[instrument] or ''
+end
 
 return gp3
 

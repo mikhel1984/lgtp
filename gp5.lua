@@ -432,7 +432,7 @@ gp5.readHarmonic = function (self, data)
   return harmonic
 end
 
--- return gp5
+return gp5
 
-local bin = utils.read(arg[1])
-gp5:readSong(bin)
+-- local bin = utils.read(arg[1])
+-- gp5:readSong(bin)
