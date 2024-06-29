@@ -120,18 +120,24 @@ end
 gp4.readBeatEffects = function (self, data)
   local flags1 = data:byte()
   local flags2 = data:byte()
-  local effects = {}
+  local effects = {flags1=flags1, flags2=flags2}
   if flags1 & 0x02 ~= 0 then effects.vibrato = true end
   if flags1 & 0x10 ~= 0 then effects.fadeIn  = true end
-  if flags1 & 0x20 ~= 0 then effects.slap       = data:sbyte() end
-  if flags2 & 0x04 ~= 0 then effects.tremoloBar = self:readTremoloBar(data) end
+  if flags1 & 0x20 ~= 0 then 
+    effects.slap       = data:sbyte() 
+  end
+  if flags2 & 0x04 ~= 0 then 
+    effects.tremoloBar = self:readTremoloBar(data) 
+  end
   if flags1 & 0x40 ~= 0 then
     local up   = data:sbyte()
     local down = data:sbyte()
     effects.beatStroke = {up, down}
   end
   if flags2 & 0x01 ~= 0 then effects.hasRasgeuado = true end
-  if flags2 & 0x02 ~= 0 then effects.pickStroke = data:sbyte() end
+  if flags2 & 0x02 ~= 0 then 
+    effects.pickStroke = data:sbyte() 
+  end
   return effects
 end
 

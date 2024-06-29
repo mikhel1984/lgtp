@@ -47,7 +47,7 @@ gp3.readInfo = function (self, data)
   info.album     = data:ibstring()
   info.words     = data:ibstring()
   info.copyright = data:ibstring()
-  info.tabbedBy  = data:ibstring()
+  info.tab       = data:ibstring()
   info.instructions = data:ibstring()
   local ns       = data:int()
   info.notice = {}
@@ -237,7 +237,7 @@ end
 
 gp3.readBeatEffects = function (self, data)
   local efs = data:byte()
-  local effects = {flags=efs}
+  local effects = {flags1=efs}
   if efs & 0x20 ~= 0 then
     local tmp = data:byte()
     if tmp == 0 then
@@ -366,9 +366,7 @@ gp3.readGrace = function (self, data)
   return grace
 end
 
-gp3.readSlides = function (self, data)
-  return {}
-end
+gp3.readSlides = function (self, data) return {} end
 
 return gp3
 

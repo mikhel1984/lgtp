@@ -309,7 +309,6 @@ end
 
 gp5.readMixTable = function (self, data)
   local tbl     = gp4.readMixTable(self, data)
-  --tbl.flags     = self:readMixTableFlags(data, tbl)
   tbl.wahEffect = data:sbyte()
   tbl.effects   = self:readRSEInstrumentEffect(data)
   return tbl
@@ -346,24 +345,12 @@ gp5.readMixTableValues = function (self, data)
 end
 
 gp5.readMixTableDurations = function (self, data, t)
-  if t.volume then
-    t.volumeDur  = data:sbyte()
-  end
-  if t.balance then
-    t.balanceDur = data:sbyte()
-  end
-  if t.chorus then
-    t.chorusDur  = data:sbyte()
-  end
-  if t.reverb then
-    t.reverbDur  = data:sbyte()
-  end
-  if t.phaser then
-    t.phaserDur  = data:sbyte()
-  end
-  if t.tremolo then
-    t.tremoloDur = data:sbyte()
-  end
+  if t.volume  then t.volumeDur  = data:sbyte() end
+  if t.balance then t.balanceDur = data:sbyte() end
+  if t.chorus  then t.chorusDur  = data:sbyte() end
+  if t.reverb  then t.reverbDur  = data:sbyte() end
+  if t.phaser  then t.phaserDur  = data:sbyte() end
+  if t.tremolo then t.tremoloDur = data:sbyte() end
   if t.tempo then
     t.tempoDur   = data:sbyte()
     if self._version > '5.00' then
@@ -384,22 +371,19 @@ gp5.readNote = function (self, data)
   local flags = data:byte()
   local effect, note = {}, {}
   if flags & 0x02 ~= 0 then effect.heavyAccentuatedNote = true end
-  if flags & 0x04 ~= 0 then effect.ghostNote = true end
+  if flags & 0x04 ~= 0 then note.ghostNote = true end
   if flags & 0x40 ~= 0 then effect.accentuatedNote = true end
   note.effect2 = effect
-  if flags & 0x20 ~= 0 then
-    note.type = data:byte()
-  end
-  if flags & 0x10 ~= 0 then
-    note.velocity = data:sbyte()
-  end
+  if flags & 0x20 ~= 0 then note.type     = data:byte() end
+  if flags & 0x10 ~= 0 then note.velocity = data:sbyte() end
   if flags & 0x20 ~= 0 then
     note.fret = data:sbyte()
     -- print(note.fret)
   end
   if flags & 0x80 ~= 0 then
-    note.effect2.leftHandFinger  = data:sbyte()
-    note.effect2.rightHandFinger = data:sbyte()
+    local left  = data:sbyte()
+    local right = data:sbyte()
+    note.effectFinger = {left, right}
   end
   if flags & 0x01 ~= 0 then
     note.durationPercent = data:double()
@@ -426,12 +410,12 @@ end
 gp5.readSlides = function (self, data)
   local slides = {}
   local tp = data:byte()
-  if tp & 0x01 ~= 0 then slides[#slides+1] = 'shiftSlideTo' end
-  if tp & 0x02 ~= 0 then slides[#slides+1] = 'legatoSlideTo' end
-  if tp & 0x04 ~= 0 then slides[#slides+1] = 'outDownwards' end
-  if tp & 0x08 ~= 0 then slides[#slides+1] = 'outUpwards' end
-  if tp & 0x10 ~= 0 then slides[#slides+1] = 'intoFromBelow' end
-  if tp & 0x20 ~= 0 then slides[#slides+1] = 'intoFromAbove' end
+  if tp & 0x01 ~= 0 then slides[#slides+1] = 1 end
+  if tp & 0x02 ~= 0 then slides[#slides+1] = 2 end
+  if tp & 0x04 ~= 0 then slides[#slides+1] = 3 end
+  if tp & 0x08 ~= 0 then slides[#slides+1] = 4 end
+  if tp & 0x10 ~= 0 then slides[#slides+1] = -1 end
+  if tp & 0x20 ~= 0 then slides[#slides+1] = -2 end
   return slides
 end
 
