@@ -1,4 +1,8 @@
--- v3 tab parser
+--[[  gp3.lua
+
+GuitarPro v3 tab parser.
+
+2024, Stanislav Mikhel ]]
 
 local utils = require('utils')
 

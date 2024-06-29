@@ -1,4 +1,8 @@
--- Binary data parsers and additional methods
+--[[  utils.lua
+
+Binary data parsers and additional methods.
+
+2024, Stanislav Mikhel ]]
 
 local unpack = string.unpack
 local sformat = string.format

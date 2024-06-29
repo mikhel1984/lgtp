@@ -1,4 +1,8 @@
--- v5 tab parser
+--[[  gp5.lua
+
+GuitarPro v5 tab parser.
+
+2024, Stanislav Mikhel ]]
 
 local utils = require('utils')
 local gp4 = require('gp4')
