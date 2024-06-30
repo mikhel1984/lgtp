@@ -50,4 +50,13 @@ map.instruments = {
 "Telephone Ring", "Helicopter", "Applause", "Gunshot",
 }
 
+map.keySignature = {
+-- major
+{[-8]='Fb', [-7]='Cb', [-6]='Gb', [-5]='Db', [-4]='Ab', [-3]='Eb', [-2]='Bb', [-1]='F', 
+[0]='C', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#', 'G#'},
+-- minor
+{[-8]='Db', [-7]='Ab', [-6]='Eb', [-5]='Bb', [-4]='F', [-3]='C', [-2]='G', [-1]='D',
+[0]='A', 'E', 'B', 'F#', 'C#', 'G#', 'D#', 'A#', 'E#'},
+}
+
 return map

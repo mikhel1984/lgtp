@@ -18,15 +18,15 @@ gp3.readSong = function (self, s)
   if data.pos < 32 then data.pos = 32 end
   local song = {}
   song.info    = self:readInfo(data)
-  song.triplet = data:byte()
+  song.triplet = data:bool()
   song.tempo   = data:int()
   song.key     = data:int()
   song.midi    = self:readMidiChannels(data)
   local measures = data:int()
   local tracks   = data:int()
-  song.measureHeader = {}
+  song.measureHeaders = {}
   for i = 1, measures do
-    song.measureHeader[i] = self:readMeasureHeader(data)
+    song.measureHeaders[i] = self:readMeasureHeader(data)
   end
   song.tracks = {}
   for i = 1, tracks do
@@ -374,6 +374,15 @@ gp3.getInstrument = function (self, song, n)
   local index = track.channel[1]
   local instrument = song.midi[index].instrument
   return mapping.instruments[instrument] or ''
+end
+
+gp3.getTripletFeel = function (self, song)
+  return song.triplet
+end
+
+gp3.getKeySignName = function (self, root, tp)
+  tp = tp + 1  -- [0,1] to [1,2]
+  return mapping.keySignature[tp][root] .. (tp == 1 and ' major' or ' minor')
 end
 
 return gp3

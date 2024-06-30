@@ -24,7 +24,7 @@ gp4.readSong = function (self, s)
     song.clipboard = self:readClipboard()
   end
   song.info    = self:readInfo(data)
-  song.triplet = data:byte()
+  song.triplet = data:bool()
   song.lyrics  = self:readLyrics(data)
   song.tempo   = data:int()
   song.key     = data:int()
@@ -32,9 +32,9 @@ gp4.readSong = function (self, s)
   song.midi    = self:readMidiChannels(data)
   local measures = data:int(data)
   local tracks   = data:int(data)
-  song.measureHeader = {}
+  song.measureHeaders = {}
   for i = 1, measures do
-    song.measureHeader[i] = self:readMeasureHeader(data)
+    song.measureHeaders[i] = self:readMeasureHeader(data)
   end
   song.tracks = {}
   for i = 1, tracks do

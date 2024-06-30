@@ -42,9 +42,9 @@ gp5.readSong = function (self, s)
   local measures    = data:int()
   local tracks      = data:int()
   -- print(measures, tracks)
-  song.measureHeader = {}
+  song.measureHeaders = {}
   for i = 1, measures do
-    song.measureHeader[i] = self:readMeasureHeader(data, i)
+    song.measureHeaders[i] = self:readMeasureHeader(data, i)
   end
   song.tracks = {}
   for i = 1, tracks do
@@ -430,6 +430,12 @@ gp5.readHarmonic = function (self, data)
     harmonic.fret       = data:byte()
   end
   return harmonic
+end
+
+--=================================
+
+gp5.getTripletFeel = function (self, song)
+  return song.measureHeaders[1].triplet ~= 0
 end
 
 return gp5
