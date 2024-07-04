@@ -2,6 +2,8 @@
 local printer = {}
 printer.__index = printer
 
+printer._dur = {[-2]=' o ', [-1]='/2 ', [0]='/4 ', '/8 ', '/16', '/32', '/64'}
+
 printer.init = function (self, lib, song, tr)
   local o = {_lib=lib, _tempo=song.tempo}
   o._song = song
@@ -17,22 +19,24 @@ printer.init = function (self, lib, song, tr)
   return setmetatable(o, self)
 end
 
+
 printer.measure = function (self, n)
   local m = #self._song.tracks * (n-1) + self._track
   local measure = self._song.measures[m]
   local beats = measure.voice[1]  -- TODO fix
   local s = {}
   local len = 0
-  for i = 1, #self._tuning do s[#s+1] = {} end
+  for i = 1, #self._tuning+1 do s[#s+1] = {} end
   for i, bt in ipairs(beats) do
     for j = 1, #self._tuning do
       table.insert(s[j], printer:beat(bt, j))
     end
+    table.insert(s[#self._tuning+1], printer._dur[bt.duration])
     len = len + 3
   end
   local t = {}
   for i = 1, #s do
-    table.insert(s[i], '|')
+    table.insert(s[i],  (i < #s) and '|' or ' ')
     t[i] = table.concat(s[i])
   end
   return t, len
