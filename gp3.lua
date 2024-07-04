@@ -300,7 +300,7 @@ gp3.readNotes = function (self, data)
   local flags = data:byte()
   local notes = {}
   for i = 1, 7 do
-    if flags & (1 << i) ~= 0 then
+    if flags & (1 << (7-i)) ~= 0 then
       -- strings in inverse order
       notes[i] = self:readNote(data)
     end
