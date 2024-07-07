@@ -386,7 +386,10 @@ gp3.getKeySignName = function (self, root, tp)
 end
 
 gp3.getDuration = function (self, beat)
-  return mapping.duration[beat.duration] .. (beat.dotted and '.' or ' ')
+  if beat.duration > 2 and not beat.dotted then
+    return mapping.duration[-beat.duration]
+  end
+  return (mapping.duration[beat.duration] or '  ') .. (beat.dotted and '.' or ' ')
 end
 
 gp3.getStringNote = function (self, v)
