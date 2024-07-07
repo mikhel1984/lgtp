@@ -17,6 +17,15 @@ printer.init = function (self, lib, song, tr)
   return setmetatable(o, self)
 end
 
+printer.head = function (self)
+  local t = {}
+  for _, v in ipairs(self._tuning) do
+    t[#t+1] = self._lib:getStringNote(v) .. '|'
+  end
+  t[#t+1] = 'dur '
+  return t, 4 
+end
+
 printer.measure = function (self, n)
   local m = #self._song.tracks * (n-1) + self._track
   local measure = self._song.measures[m]
@@ -37,7 +46,7 @@ printer.measure = function (self, n)
   end
   dur[#dur+1] = ' '
   t[#t+1] = table.concat(dur)
-  return t, 3 * #beats
+  return t, 3 * #beats + 1
 end
 
 printer.beat = function (self, bt, i)
@@ -53,20 +62,29 @@ printer.beat = function (self, bt, i)
 end
 
 printer.print = function (self)
-  local line = {n=0}
+  local line, total = {}, 0
+  local begin = false
+  
   for i = 1, #self._song.measureHeaders do
     local measure, n = self:measure(i)
-    if line.n + n > 80 then
+    if total + n > 80 then
       for _, txt in ipairs(line) do print(txt) end
-      print('')
-      line = {n=0}
+      line, total = {}, 0
+      begin = false
+    end
+    if not begin then
+      print(string.format('\nmeas %d', i))
+      local head, k = self:head()
+      total = k
+      for i, v in ipairs(head) do line[i] = v end
+      begin = true
     end
     for i, v in ipairs(measure) do
       line[i] = line[i] and (line[i] .. v) or v
     end
-    line.n = line.n + n
+    total = total + n
   end
-  if line.n > 0 then
+  if total > 0 then
     for _, txt in ipairs(line) do print(txt) end
   end
 end

@@ -389,6 +389,11 @@ gp3.getDuration = function (self, beat)
   return mapping.duration[beat.duration] .. (beat.dotted and '.' or ' ')
 end
 
+gp3.getStringNote = function (self, v)
+  local note = v % 12
+  return mapping.string[note+1] .. tostring(v // 12)
+end
+
 return gp3
 
 --local bin = utils.read(arg[1])

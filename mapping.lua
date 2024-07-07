@@ -61,4 +61,8 @@ map.keySignature = {
 
 map.duration = {[-2]=' o', [-1]=' 2', [0]=' 4', ' 8', '16', '32', '64'}
 
+map.string = {
+  ' C', 'C#', ' D', 'D#', ' E', ' F', 'F#', ' G', 'G#', ' A', 'A#', ' B',
+}
+
 return map
