@@ -385,6 +385,10 @@ gp3.getKeySignName = function (self, root, tp)
   return mapping.keySignature[tp][root] .. (tp == 1 and ' major' or ' minor')
 end
 
+gp3.getDuration = function (self, beat)
+  return mapping.duration[beat.duration] .. (beat.dotted and '.' or ' ')
+end
+
 return gp3
 
 --local bin = utils.read(arg[1])
