@@ -386,10 +386,18 @@ gp3.getKeySignName = function (self, root, tp)
 end
 
 gp3.getDuration = function (self, beat)
+  local dur = nil
   if beat.duration > 2 and not beat.dotted then
-    return mapping.duration[-beat.duration]
+    -- use ' to define duration
+    dur = mapping.duration[-beat.duration]
+  else  -- use numbers
+    dur = (mapping.duration[beat.duration] or '  ') .. (beat.dotted and '.' or ' ')
   end
-  return (mapping.duration[beat.duration] or '  ') .. (beat.dotted and '.' or ' ')
+  -- mark tuplets
+  if beat.tuplet and string.find(dur, '|') then
+    return string.gsub(dur, '|', string.format('%x', beat.tuplet))  
+  end
+  return dur
 end
 
 gp3.getStringNote = function (self, v)
