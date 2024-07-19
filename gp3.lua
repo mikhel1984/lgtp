@@ -418,23 +418,23 @@ gp3.getNoteAndEffect = function (self, bt, i)
     return ' x ' 
   end
   local effect = ' '
-  if note.ghostNote then effect = ')'
+  local mf = mapping.effects
+  if note.ghostNote then effect = mf.ghost
   elseif bt.effects then
     local ect = bt.effects.flags1
-    if     ect & 0x04 ~= 0 then effect = '*'  -- natural harmonic
-    elseif ect & 0x08 ~= 0 then effect = 'A'  -- artifitial harmonic
-    elseif ect & 0x01 ~= 0 then effect = '~'  -- vibrato
-    elseif ect & 0x10 ~= 0 then effect = '<'  -- fade in
+    if     ect & 0x04 ~= 0 then effect = mf.naturalHarm
+    elseif ect & 0x08 ~= 0 then effect = mf.artificialHarm
+    elseif ect & 0x01 ~= 0 then effect = mf.vibrato
+    elseif ect & 0x10 ~= 0 then effect = mf.fadeIn
     elseif bt.effects.slap then
-      local key = {'T', 'S', 'P'}     -- tapping, slap, pop
-      effect = key[bt.effects.slap]
+      effect = mf[bt.effects.slap]
     end
   elseif note.effect then
     local ect = note.effect
-    if     ect.letRing then effect = 'L'  -- let ring
-    elseif ect.hammer  then effect = 'h'  -- hammer
-    elseif ect.bend    then effect = '^'  -- bend
-    elseif ect.slides  then effect = '/'  -- slide
+    if     ect.letRing then effect = mf.letRing
+    elseif ect.hammer  then effect = mf.hammer
+    elseif ect.bend    then effect = mf.bend
+    elseif ect.slides  then effect = mf.slide
     end
   end
   return string.format('%2d%s', note.fret, effect)

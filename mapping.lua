@@ -60,12 +60,20 @@ map.keySignature = {
 }
 
 map.duration = {
-  [-2]=' o', [-1]=' *', [0]=' |', '|\'', '|"', '32', '64', 
+  [-2]=' o', [-1]=' b', [0]=' |', '|\'', '|"', '32', '64', 
   [-3]='|"\'', [-4]='|""', [-5]='128', [-6]='256',  
 }
 
 map.string = {
   ' C', 'C#', ' D', 'D#', ' E', ' F', 'F#', ' G', 'G#', ' A', 'A#', ' B',
 }
+
+map.effects = {
+  ghost=')', naturalHarm='*', artificialHarm='A', vibrato='~', fadeIn='<',
+  tap='T', slap='S', pop='P', letRing='L', hammer='⏜', bend='^', slide='/',
+}
+map.effects[1] = map.effects.tap
+map.effects[2] = map.effects.slap
+map.effects[3] = map.effects.pop
 
 return map

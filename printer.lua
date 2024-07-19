@@ -133,8 +133,8 @@ else
   end
   print('', song.info.title)
   print(string.format('%s [%s]', song.tracks[n].name, lib:getInstrument(song, n)))
-  print('Tempo:', song.tempo, lib:getTripletFeel(song) and '(triplet feel)' or '')
   print('Key:', lib:getKeySignName(song.key, 0))
+  print('Tempo:', song.tempo, lib:getTripletFeel(song) and '(triplet feel)' or '')  
 
   local pr = printer:init(lib, song, n)
   pr:print()
