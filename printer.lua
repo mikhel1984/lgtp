@@ -50,7 +50,7 @@ printer.measure = function (self, n)
   for i = 1, #self._tuning do s[#s+1] = {} end
   for i, bt in ipairs(beats) do
     for j = 1, #self._tuning do
-      table.insert(s[j], printer:beat(bt, j))
+      table.insert(s[j], self._lib:getNoteAndEffect(bt, j))
     end
     dur[#dur+1] = self._lib:getDuration(bt)
   end
@@ -63,18 +63,6 @@ printer.measure = function (self, n)
   dur[#dur+1] = ' '
   t[#t+1] = table.concat(dur)
   return t, 3 * #beats + 1
-end
-
-printer.beat = function (self, bt, i)
-  local note = bt.notes[i]
-  if not note then
-    return '---'
-  elseif note.ghostNote then
-    return ' x '
-  elseif note.fret then
-    local templ = (note.fret < 10) and ' %d ' or '%d '
-    return string.format(templ, note.fret)
-  end
 end
 
 printer.print = function (self)

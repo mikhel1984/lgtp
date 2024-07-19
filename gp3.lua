@@ -410,6 +410,36 @@ gp3.getSignature = function (self, song, m)
   return head.numerator, head.denominator
 end
 
+gp3.getNoteAndEffect = function (self, bt, i)
+  local note = bt.notes[i]
+  if not note then 
+    return '---'
+  elseif note.type == 3 then
+    return ' x ' 
+  end
+  local effect = ' '
+  if note.ghostNote then effect = ')'
+  elseif bt.effects then
+    local ect = bt.effects.flags1
+    if     ect & 0x04 ~= 0 then effect = '*'  -- natural harmonic
+    elseif ect & 0x08 ~= 0 then effect = 'A'  -- artifitial harmonic
+    elseif ect & 0x01 ~= 0 then effect = '~'  -- vibrato
+    elseif ect & 0x10 ~= 0 then effect = '<'  -- fade in
+    elseif bt.effects.slap then
+      local key = {'T', 'S', 'P'}     -- tapping, slap, pop
+      effect = key[bt.effects.slap]
+    end
+  elseif note.effect then
+    local ect = note.effect
+    if     ect.letRing then effect = 'L'  -- let ring
+    elseif ect.hammer  then effect = 'h'  -- hammer
+    elseif ect.bend    then effect = '^'  -- bend
+    elseif ect.slides  then effect = '/'  -- slide
+    end
+  end
+  return string.format('%2d%s', note.fret, effect)
+end
+
 return gp3
 
 --local bin = utils.read(arg[1])
