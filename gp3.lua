@@ -405,6 +405,11 @@ gp3.getStringNote = function (self, v)
   return mapping.string[note+1] .. tostring(v // 12)
 end
 
+gp3.getSignature = function (self, song, m)
+  local head = song.measureHeaders[m]
+  return head.numerator, head.denominator
+end
+
 return gp3
 
 --local bin = utils.read(arg[1])

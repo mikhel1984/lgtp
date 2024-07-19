@@ -8,6 +8,8 @@ printer.init = function (self, lib, song, tr)
   o._triplet = lib:getTripletFeel(song)
   o._keyRoot = song.key
   o._keyType = 0
+  o._signNum = 0
+  o._signDenom = 0
   o._track = tr
   o._tuning = {}
   for i = 1, song.tracks[tr].strings do
@@ -24,6 +26,20 @@ printer.head = function (self)
   end
   t[#t+1] = 'dur '
   return t, 4 
+end
+
+printer.signature = function (self, i)
+  local num, denom = self._lib:getSignature(self._song, i)
+  if num and denom then
+    local t = {}
+    for i = 1, #self._tuning do t[#t+1] = '   :' end
+    local j = (#t > 2) and 2 or 1    
+    t[j] = string.format('%2d :', num)
+    t[#t-j+1] = string.format('%2d :', denom)
+    t[#t+1] = '    '
+    self._signNum, self._signDenom = num, denom
+    return t, 4
+  end
 end
 
 printer.measure = function (self, n)
@@ -73,12 +89,20 @@ printer.print = function (self)
       begin = false
     end
     if not begin then
-      print(string.format('\nmeas %d', i))
+      -- new line, head
+      print(string.format('\n# %d', i))
       local head, k = self:head()
       total = k
       for i, v in ipairs(head) do line[i] = v end
       begin = true
     end
+    -- show signature on change
+    local sign, m = self:signature(i)
+    if sign then
+      for i, v in ipairs(sign) do line[i] = line[i] .. v end
+      total = total + m
+    end
+    -- show notes
     for i, v in ipairs(measure) do
       line[i] = line[i] and (line[i] .. v) or v
     end
