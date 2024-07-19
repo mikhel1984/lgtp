@@ -427,7 +427,7 @@ gp3.getNoteAndEffect = function (self, bt, i)
     elseif ect & 0x01 ~= 0 then effect = mf.vibrato
     elseif ect & 0x10 ~= 0 then effect = mf.fadeIn
     elseif bt.effects.slap then
-      effect = mf[bt.effects.slap]
+      effect = mf.ind[bt.effects.slap]
     end
   elseif note.effect then
     local ect = note.effect

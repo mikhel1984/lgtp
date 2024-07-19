@@ -12,6 +12,7 @@ printer.init = function (self, lib, song, tr)
   o._signDenom = 0
   o._track = tr
   o._tuning = {}
+  o._effects = {}
   for i = 1, song.tracks[tr].strings do
     table.insert(o._tuning, song.tracks[tr].tuning[i])
   end
@@ -42,6 +43,8 @@ printer.signature = function (self, i)
   end
 end
 
+
+
 printer.measure = function (self, n)
   local m = #self._song.tracks * (n-1) + self._track
   local measure = self._song.measures[m]
@@ -50,7 +53,9 @@ printer.measure = function (self, n)
   for i = 1, #self._tuning do s[#s+1] = {} end
   for i, bt in ipairs(beats) do
     for j = 1, #self._tuning do
-      table.insert(s[j], self._lib:getNoteAndEffect(bt, j))
+      local note = self._lib:getNoteAndEffect(bt, j)
+      table.insert(s[j], note)
+      self._effects[string.sub(note, 3)] = true
     end
     dur[#dur+1] = self._lib:getDuration(bt)
   end
@@ -63,6 +68,15 @@ printer.measure = function (self, n)
   dur[#dur+1] = ' '
   t[#t+1] = table.concat(dur)
   return t, 3 * #beats + 1
+end
+
+printer.listEffects = function (self)
+  local map = require('mapping')
+  local t = {}
+  for k, v in pairs(map.effects) do
+    if self._effects[v] then t[#t+1] = string.format('%s %s', v, k) end
+  end
+  return t  
 end
 
 printer.print = function (self)
@@ -98,6 +112,16 @@ printer.print = function (self)
   end
   if total > 0 then
     for _, txt in ipairs(line) do print(txt) end
+  end
+  -- notations
+  local efs = self:listEffects()
+  if #efs > 0 then 
+    print('\nNotation')
+    for i = 1, #efs, 4 do
+      local t = {}
+      for j = 1, 4 do t[j] = efs[i+j-1] end
+      print(table.concat(t, '\t '))
+    end
   end
 end
 

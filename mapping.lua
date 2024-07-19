@@ -71,9 +71,10 @@ map.string = {
 map.effects = {
   ghost=')', naturalHarm='*', artificialHarm='A', vibrato='~', fadeIn='<',
   tap='T', slap='S', pop='P', letRing='L', hammer='⏜', bend='^', slide='/',
+  ind={}
 }
-map.effects[1] = map.effects.tap
-map.effects[2] = map.effects.slap
-map.effects[3] = map.effects.pop
+map.effects.ind[1] = map.effects.tap
+map.effects.ind[2] = map.effects.slap
+map.effects.ind[3] = map.effects.pop
 
 return map
