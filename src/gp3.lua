@@ -4,8 +4,8 @@ GuitarPro v3 tab parser.
 
 2024, Stanislav Mikhel ]]
 
-local utils = require('utils')
-local mapping = require('mapping')
+local utils = require('src.utils')
+local mapping = require('src.mapping')
 
 
 local gp3 = {}

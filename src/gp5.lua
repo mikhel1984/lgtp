@@ -4,8 +4,8 @@ GuitarPro v5 tab parser.
 
 2024, Stanislav Mikhel ]]
 
-local utils = require('utils')
-local gp4 = require('gp4')
+local utils = require('src.utils')
+local gp4 = require('src.gp4')
 
 
 local gp5 = {}

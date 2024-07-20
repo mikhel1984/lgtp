@@ -43,14 +43,21 @@ printer.signature = function (self, i)
   end
 end
 
-
-
 printer.measure = function (self, n)
   local m = #self._song.tracks * (n-1) + self._track
   local measure = self._song.measures[m]
   local beats = measure.voice[1]  -- TODO fix
   local s, dur = {}, {}
   for i = 1, #self._tuning do s[#s+1] = {} end
+  -- check signature
+  local sign, w = self:signature(n)
+  if sign then
+    for i = 1, #self._tuning do
+      table.insert(s[i], sign[i])
+    end
+    dur[#dur+1] = sign[#sign]
+  end
+  -- notes
   for i, bt in ipairs(beats) do
     for j = 1, #self._tuning do
       local note = self._lib:getNoteAndEffect(bt, j)
@@ -67,11 +74,11 @@ printer.measure = function (self, n)
   end
   dur[#dur+1] = ' '
   t[#t+1] = table.concat(dur)
-  return t, 3 * #beats + 1
+  return t, 3 * #beats + 1 + (w or 0)
 end
 
 printer.listEffects = function (self)
-  local map = require('mapping')
+  local map = require('src.mapping')
   local t = {}
   for k, v in pairs(map.effects) do
     if self._effects[v] then t[#t+1] = string.format('%s %s', v, k) end
@@ -92,17 +99,11 @@ printer.print = function (self)
     end
     if not begin then
       -- new line, head
-      print(string.format('\n# %d', i))
+      print(string.format('\n#%3d', i))
       local head, k = self:head()
       total = k
       for i, v in ipairs(head) do line[i] = v end
       begin = true
-    end
-    -- show signature on change
-    local sign, m = self:signature(i)
-    if sign then
-      for i, v in ipairs(sign) do line[i] = line[i] .. v end
-      total = total + m
     end
     -- show notes
     for i, v in ipairs(measure) do
@@ -125,10 +126,10 @@ printer.print = function (self)
   end
 end
 
-local utils = require('utils')
+local utils = require('src.utils')
 local f = utils.read(arg[1])
 local ver = utils.version(f)
-local lib = require('gp'..ver)
+local lib = require('src.gp'..ver)
 
 local song = lib:readSong(f)
 
