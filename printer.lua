@@ -20,13 +20,19 @@ printer.init = function (self, lib, song, tr)
   return setmetatable(o, self)
 end
 
+printer.fuse = function (marks, strings, dur)
+  local t = {marks}
+  for i = 1, #strings do t[#t+1] = strings[i] end
+  t[#t+1] = dur
+  return t, #dur  
+end
+
 printer.head = function (self)
   local t = {}
   for _, v in ipairs(self._tuning) do
     t[#t+1] = self._lib:getStringNote(v) .. '|'
   end
-  t[#t+1] = 'dur '
-  return t, 4 
+  return printer.fuse('    ', t, 'dur ')
 end
 
 printer.signature = function (self, i)
@@ -37,9 +43,8 @@ printer.signature = function (self, i)
     local j = (#t > 2) and 2 or 1    
     t[j] = string.format('%2d :', num)
     t[#t-j+1] = string.format('%2d :', denom)
-    t[#t+1] = '    '
     self._signNum, self._signDenom = num, denom
-    return t, 4
+    return '    ', t, '    '
   end
 end
 
@@ -47,34 +52,35 @@ printer.measure = function (self, n)
   local m = #self._song.tracks * (n-1) + self._track
   local measure = self._song.measures[m]
   local beats = measure.voice[1]  -- TODO fix
-  local s, dur = {}, {}
-  for i = 1, #self._tuning do s[#s+1] = {} end
+  local str, dur, marks = {}, {}, {}
+  for i = 1, #self._tuning do str[#str+1] = {} end
   -- check signature
-  local sign, w = self:signature(n)
-  if sign then
+  local sm, sstr, sd = self:signature(n)
+  if sstr then
+    marks[#marks+1] = sm
     for i = 1, #self._tuning do
-      table.insert(s[i], sign[i])
+      table.insert(str[i], sstr[i])
     end
-    dur[#dur+1] = sign[#sign]
+    dur[#dur+1] = sd
   end
   -- notes
   for i, bt in ipairs(beats) do
     for j = 1, #self._tuning do
       local note = self._lib:getNoteAndEffect(bt, j)
-      table.insert(s[j], note)
+      table.insert(str[j], note)
       self._effects[string.sub(note, 3)] = true
     end
     dur[#dur+1] = self._lib:getDuration(bt)
+    marks[#marks+1] = '   '
   end
   -- to text
-  local t = {}
-  for i = 1, #s do
-    table.insert(s[i], '|')
-    t[i] = table.concat(s[i])
+  for i = 1, #str do
+    table.insert(str[i], '|')
+    str[i] = table.concat(str[i])
   end
   dur[#dur+1] = ' '
-  t[#t+1] = table.concat(dur)
-  return t, 3 * #beats + 1 + (w or 0)
+  marks[#marks+1] = ' '
+  return printer.fuse(table.concat(marks), str, table.concat(dur))
 end
 
 printer.listEffects = function (self)
@@ -88,22 +94,22 @@ end
 
 printer.print = function (self)
   local line, total = {}, 0
-  local begin = false
+  local newline = true
   
   for i = 1, #self._song.measureHeaders do
     local measure, n = self:measure(i)
     if total + n > 80 then
       for _, txt in ipairs(line) do print(txt) end
       line, total = {}, 0
-      begin = false
+      newline = true
     end
-    if not begin then
-      -- new line, head
-      print(string.format('\n#%3d', i))
+    if newline then
+      -- show head      
       local head, k = self:head()
+      head[1] = string.format('\n%3d ', i)
       total = k
       for i, v in ipairs(head) do line[i] = v end
-      begin = true
+      newline = false
     end
     -- show notes
     for i, v in ipairs(measure) do
