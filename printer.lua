@@ -35,7 +35,7 @@ printer.head = function (self)
   return printer.fuse('    ', t, 'dur ')
 end
 
-printer.signature = function (self, i)
+printer.signature = function (self, i, dst)
   local num, denom = self._lib:getSignature(self._song, i)
   if num and denom then
     local t = {}
@@ -44,7 +44,43 @@ printer.signature = function (self, i)
     t[j] = string.format('%2d :', num)
     t[#t-j+1] = string.format('%2d :', denom)
     self._signNum, self._signDenom = num, denom
-    return '    ', t, '    '
+    -- update
+    table.insert(dst[1], '    ')  -- marks
+    local ds = dst[2]  -- strings
+    for i = 1, #t do table.insert(ds[i], t[i]) end
+    table.insert(dst[3], '    ')  -- duration
+  end
+end
+
+printer.repeats = function (self, i, begin, dst)
+  local flag = nil
+  if begin then
+    flag = self._lib:getRepeatBegin(self._song, i)   
+  else
+    flag = self._lib:getRepeatEnd(self._song, i)
+  end
+  if flag then
+    local t = {}
+    for i = 1, #self._tuning do t[#t+1] = begin and '!  ' or '  !' end
+    local j = (#t > 2) and 2 or 1
+    t[j] = begin and '!* ' or ' *!'
+    t[#t-j+1] = begin and '!* ' or ' *!'
+    local mark = begin and '   ' or string.format('x%d ', flag)
+    -- update
+    table.insert(dst[1], mark)  -- marks
+    local ds = dst[2]  -- strings
+    for i = 1, #t do table.insert(ds[i], t[i]) end
+    table.insert(dst[3], '   ')  -- duration
+  end
+end
+
+printer.alternates = function (self, i, dst)
+  local alt = self._lib:getAlternate(self._song, i)
+  if alt then
+    table.insert(dst[1], string.format('&%d', alt))
+    local ds = dst[2]
+    for i = 1, #ds do table.insert(ds[i], '  ') end
+    table.insert(dst[3], '  ')    
   end
 end
 
@@ -55,14 +91,11 @@ printer.measure = function (self, n)
   local str, dur, marks = {}, {}, {}
   for i = 1, #self._tuning do str[#str+1] = {} end
   -- check signature
-  local sm, sstr, sd = self:signature(n)
-  if sstr then
-    marks[#marks+1] = sm
-    for i = 1, #self._tuning do
-      table.insert(str[i], sstr[i])
-    end
-    dur[#dur+1] = sd
-  end
+  self:signature(n, {marks, str, dur})
+  -- check first reprease
+  self:repeats(n, true, {marks, str, dur})
+  -- check alternates
+  self:alternates(n, {marks, str, dur})
   -- notes
   for i, bt in ipairs(beats) do
     for j = 1, #self._tuning do
@@ -73,6 +106,8 @@ printer.measure = function (self, n)
     dur[#dur+1] = self._lib:getDuration(bt)
     marks[#marks+1] = '   '
   end
+  -- check second reprease
+  self:repeats(n, false, {marks, str, dur})
   -- to text
   for i = 1, #str do
     table.insert(str[i], '|')

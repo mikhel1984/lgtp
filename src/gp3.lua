@@ -410,6 +410,18 @@ gp3.getSignature = function (self, song, m)
   return head.numerator, head.denominator
 end
 
+gp3.getRepeatBegin = function (self, song, m)
+  return song.measureHeaders[m].repeatBeg
+end
+
+gp3.getRepeatEnd = function (self, song, m)
+  return song.measureHeaders[m].repeatNo
+end
+
+gp3.getAlternate = function (self, song, m)
+  return song.measureHeaders[m].alternate
+end
+
 gp3.getNoteAndEffect = function (self, bt, i)
   local note = bt.notes[i]
   if not note then 
