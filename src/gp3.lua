@@ -311,6 +311,7 @@ end
 gp3.readNote = function (self, data)
   local flags= data:byte()
   local note = {}
+  if flags & 0x02 ~= 0 then note.heavyAccentuated = true end
   if flags & 0x04 ~= 0 then note.ghostNote = true end
   if flags & 0x20 ~= 0 then note.type = data:byte() end
   if flags & 0x01 ~= 0 then
@@ -321,6 +322,7 @@ gp3.readNote = function (self, data)
   if flags & 0x20 ~= 0 then
     note.fret = data:sbyte()
   end
+  if flags & 0x40 ~= 0 then note.accentuated = true end
   if flags & 0x80 ~= 0 then
     local left  = data:sbyte()
     local right = data:sbyte()
@@ -337,7 +339,7 @@ gp3.readNoteEffect = function (self, data)
   if flags & 0x08 ~= 0 then effects.letRing = true end
   if flags & 0x01 ~= 0 then effects.bend   = self:readBend(data) end
   if flags & 0x10 ~= 0 then effects.grace  = self:readGrace(data) end
-  if flags & 0x04 ~= 0 then effects.slides = self:readSlides(data) end
+  if flags & 0x04 ~= 0 then effects.slide  = self:readSlides(data) end
   return effects
 end
 
@@ -432,21 +434,22 @@ gp3.getNoteAndEffect = function (self, bt, i)
   local effect = ' '
   local mf = mapping.effects
   if note.ghostNote then effect = mf.ghost
+  elseif note.heavyAccentuated or note.accentuated then effect = mf.accentuated
   elseif bt.effects then
     local ect = bt.effects.flags1
     if     ect & 0x04 ~= 0 then effect = mf.naturalHarm
     elseif ect & 0x08 ~= 0 then effect = mf.artificialHarm
     elseif ect & 0x01 ~= 0 then effect = mf.vibrato
     elseif ect & 0x10 ~= 0 then effect = mf.fadeIn
-    elseif bt.effects.slap then
-      effect = mf.ind[bt.effects.slap]
+    elseif bt.effects.slap then effect = mf.ind[bt.effects.slap]
+    elseif bt.effects.tremoloBar then effect = mf.tremoloBar
     end
   elseif note.effect then
     local ect = note.effect
     if     ect.letRing then effect = mf.letRing
     elseif ect.hammer  then effect = mf.hammer
     elseif ect.bend    then effect = mf.bend
-    elseif ect.slides  then effect = mf.slide
+    elseif ect.slide   then effect = mf.slide
     end
   end
   return string.format('%2d%s', note.fret, effect)

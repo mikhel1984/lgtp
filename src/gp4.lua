@@ -6,6 +6,7 @@ GuitarPro v4 tab parser.
 
 local utils = require('src.utils')
 local gp3 = require('src.gp3')
+local mapping = require('src.mapping')
 
 
 local gp4 = {}
@@ -193,8 +194,37 @@ gp4.readHarmonic = function (self, data)
   return {type = data:sbyte()}
 end
 
+gp4.getNoteAndEffect = function (self, bt, i)
+  local note = bt.notes[i]
+  if not note then 
+    return '---'
+  elseif note.type == 3 then
+    return ' x ' 
+  end
+  local effect = ' '
+  local mf = mapping.effects
+  if note.ghostNote then effect = mf.ghost
+  elseif note.heavyAccentuated or note.accentuated then effect = mf.accentuated
+  elseif bt.effects then
+    local ect = bt.effects.flags1
+    if     ect & 0x04 ~= 0 then effect = mf.naturalHarm
+    elseif ect & 0x08 ~= 0 then effect = mf.artificialHarm
+    elseif ect & 0x01 ~= 0 then effect = mf.vibrato
+    elseif ect & 0x10 ~= 0 then effect = mf.fadeIn
+    elseif bt.effects.slap then effect = mf.ind[bt.effects.slap]
+    elseif bt.effects.tremoloBar then effect = mf.tremoloBar
+    end
+  elseif note.effect then
+    local ect = note.effect
+    if     ect.letRing then effect = mf.letRing
+    elseif ect.hammer  then effect = mf.hammer
+    elseif ect.bend    then effect = mf.bend
+    elseif ect.slide   then effect = mf.slide
+    end
+  end
+  return string.format('%2d%s', note.fret, effect)
+end
+
+
 return gp4
 
-
---local bin = utils.read(arg[1])
---gp4:readSong(bin)
