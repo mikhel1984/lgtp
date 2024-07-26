@@ -65,7 +65,7 @@ printer.repeats = function (self, i, begin, dst)
     local j = (#t > 2) and 2 or 1
     t[j] = begin and '!* ' or ' *!'
     t[#t-j+1] = begin and '!* ' or ' *!'
-    local mark = begin and '   ' or string.format('x%d ', flag)
+    local mark = begin and '   ' or string.format(' x%d', flag)
     -- update
     table.insert(dst[1], mark)  -- marks
     local ds = dst[2]  -- strings
@@ -77,7 +77,7 @@ end
 printer.alternates = function (self, i, dst)
   local alt = self._lib:getAlternate(self._song, i)
   if alt then
-    table.insert(dst[1], string.format('&%d', alt))
+    table.insert(dst[1], string.format('[%d', alt))
     local ds = dst[2]
     for i = 1, #ds do table.insert(ds[i], '  ') end
     table.insert(dst[3], '  ')    

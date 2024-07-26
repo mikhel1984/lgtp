@@ -53,8 +53,10 @@ gp5.readSong = function (self, s)
   data:skip(self._version == '5.00' and 2 or 1)
   song.measures = {}
   for i = 1, measures do
+    for j = 1, tracks do
     -- print('measure', i)
-    song.measures[i] = self:readMeasure(data)
+    song.measures[#song.measures+1] = self:readMeasure(data)
+    end
   end
   return song
 end

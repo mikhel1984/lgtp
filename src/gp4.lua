@@ -43,7 +43,9 @@ gp4.readSong = function (self, s)
   end
   song.measures = {}
   for i = 1, measures do
-    song.measures[i] = self:readMeasure(data)
+    for j = 1, tracks do
+      song.measures[#song.measures+1] = self:readMeasure(data)
+    end
   end
   return song
 end
@@ -131,9 +133,8 @@ gp4.readBeatEffects = function (self, data)
     effects.tremoloBar = self:readTremoloBar(data) 
   end
   if flags1 & 0x40 ~= 0 then
-    local up   = data:sbyte()
-    local down = data:sbyte()
-    effects.beatStroke = {up, down}
+    effects.strokeDown = (data:sbyte() > 0)
+    effects.strokeUp   = (data:sbyte() > 0)
   end
   if flags2 & 0x01 ~= 0 then effects.hasRasgeuado = true end
   if flags2 & 0x02 ~= 0 then 
@@ -194,7 +195,7 @@ gp4.readHarmonic = function (self, data)
   return {type = data:sbyte()}
 end
 
---
+--======================================================
 
 gp4.getNoteAndEffect = function (self, bt, i)
   local note = bt.notes[i]
@@ -216,6 +217,8 @@ gp4.getNoteAndEffect = function (self, bt, i)
     elseif bt.effects.slap then effect = mf.ind[bt.effects.slap]
     elseif bt.effects.tremoloBar then effect = mf.tremoloBar
     elseif bt.effects.vibrato then effect = mf.vibrato
+    elseif bt.effects.strokeUp then effect = mf.strokeUp
+    elseif bt.effects.strokeDown then effect = mf.strokeDown
     end
   elseif note.effect then
     local ect = note.effect

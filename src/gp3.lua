@@ -35,7 +35,10 @@ gp3.readSong = function (self, s)
   song.measures = {}
   for i = 1, measures do
     -- print('measure', i)
-    song.measures[i] = self:readMeasure(data)
+    for j = 1, tracks do
+      -- print('track', j)
+      song.measures[#song.measures+1] = self:readMeasure(data)
+    end
   end
   return song
 end
@@ -247,9 +250,8 @@ gp3.readBeatEffects = function (self, data)
     end
   end
   if efs & 0x40 ~= 0 then
-    local up   = data:sbyte()
-    local down = data:sbyte()
-    effects.beatStroke = {up, down}
+    effects.strokeDown = (data:sbyte() > 0)
+    effects.strokeUp   = (data:sbyte() > 0)
   end
   return effects
 end
@@ -443,6 +445,8 @@ gp3.getNoteAndEffect = function (self, bt, i)
     elseif ect & 0x10 ~= 0 then effect = mf.fadeIn
     elseif bt.effects.slap then effect = mf.ind[bt.effects.slap]
     elseif bt.effects.tremoloBar then effect = mf.tremoloBar
+    elseif bt.effects.strokeUp then effect = mf.strokeUp
+    elseif bt.effects.strokeDown then effect = mf.strokeDown
     end
   elseif note.effect then
     local ect = note.effect

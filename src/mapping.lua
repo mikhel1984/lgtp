@@ -72,7 +72,7 @@ map.effects = {
   ghost=')', naturalHarm='*', artificialHarm='A', vibrato='~', fadeIn='<',
   tap='T', slap='S', pop='P', letRing='L', hammer='⏜', bend='^', slide='/',
   accentuated='>', tremoloBar='v', trill='𝆖', tremoloPicking="t", palmMute='M',
-  stoccato='.',
+  stoccato='.', strokeUp='↓', strokeDown='↑',
   ind={}, 
 }
 map.effects.ind[1] = map.effects.tap
