@@ -194,6 +194,8 @@ gp4.readHarmonic = function (self, data)
   return {type = data:sbyte()}
 end
 
+--
+
 gp4.getNoteAndEffect = function (self, bt, i)
   local note = bt.notes[i]
   if not note then 
@@ -213,6 +215,7 @@ gp4.getNoteAndEffect = function (self, bt, i)
     elseif ect & 0x10 ~= 0 then effect = mf.fadeIn
     elseif bt.effects.slap then effect = mf.ind[bt.effects.slap]
     elseif bt.effects.tremoloBar then effect = mf.tremoloBar
+    elseif bt.effects.vibrato then effect = mf.vibrato
     end
   elseif note.effect then
     local ect = note.effect
@@ -220,6 +223,10 @@ gp4.getNoteAndEffect = function (self, bt, i)
     elseif ect.hammer  then effect = mf.hammer
     elseif ect.bend    then effect = mf.bend
     elseif ect.slide   then effect = mf.slide
+    elseif ect.trill   then effect = mf.trill
+    elseif ect.tremoloPicking then effect = mf.tremoloPicking
+    elseif ect.palmMute then effect = mf.palmMute
+    elseif ect.stoccato then effect = mf.stoccato
     end
   end
   return string.format('%2d%s', note.fret, effect)
