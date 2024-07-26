@@ -404,6 +404,10 @@ gp3.getDuration = function (self, beat)
   return dur
 end
 
+gp3.getText = function (self, beat)
+  return beat.text
+end
+
 gp3.getStringNote = function (self, v)
   local note = v % 12
   return mapping.string[note+1] .. tostring(v // 12)

@@ -1,4 +1,5 @@
 
+local WIDTH = 80
 local printer = {}
 printer.__index = printer
 
@@ -96,6 +97,8 @@ printer.measure = function (self, n)
   self:repeats(n, true, {marks, str, dur})
   -- check alternates
   self:alternates(n, {marks, str, dur})
+  -- check text
+  local txt, n0 = {}, #table.concat(dur)+1
   -- notes
   for i, bt in ipairs(beats) do
     for j = 1, #self._tuning do
@@ -105,6 +108,8 @@ printer.measure = function (self, n)
     end
     dur[#dur+1] = self._lib:getDuration(bt)
     marks[#marks+1] = '   '
+    local t = self._lib:getText(bt)
+    if t then txt[#txt+1] = {n0 + 3*(i-1), t} end
   end
   -- check second reprease
   self:repeats(n, false, {marks, str, dur})
@@ -115,7 +120,8 @@ printer.measure = function (self, n)
   end
   dur[#dur+1] = ' '
   marks[#marks+1] = ' '
-  return printer.fuse(table.concat(marks), str, table.concat(dur))
+  local combo, len = printer.fuse(table.concat(marks), str, table.concat(dur))
+  return combo, len, txt
 end
 
 printer.listEffects = function (self)
@@ -127,21 +133,36 @@ printer.listEffects = function (self)
   return t  
 end
 
+printer.showText = function (ps)
+  local prev, acc = 1, {}
+  for _, p in ipairs(ps) do
+    local n = p[1]-1
+    for i = prev, n do acc[i] = ' ' end
+    for i = 1, #p[2] do acc[i+n] = string.sub(p[2], i, i) end
+    prev = n + #p[2] + 1
+  end
+  print()
+  if #acc > 0 then 
+    print(table.concat(acc))
+  end
+end
+
 printer.print = function (self)
-  local line, total = {}, 0
+  local line, total, acc = {}, 0, {}
   local newline = true
   
   for i = 1, #self._song.measureHeaders do
-    local measure, n = self:measure(i)
-    if total + n > 80 then
+    local measure, n, ps = self:measure(i)
+    if total + n > WIDTH then
+      printer.showText(acc)
       for _, txt in ipairs(line) do print(txt) end
-      line, total = {}, 0
+      line, total, acc = {}, 0, {}
       newline = true
     end
     if newline then
       -- show head      
       local head, k = self:head()
-      head[1] = string.format('\n%3d ', i)
+      head[1] = string.format('%3d ', i)
       total = k
       for i, v in ipairs(head) do line[i] = v end
       newline = false
@@ -150,9 +171,17 @@ printer.print = function (self)
     for i, v in ipairs(measure) do
       line[i] = line[i] and (line[i] .. v) or v
     end
+    -- text line
+    if #ps > 0 then
+      for _, v in ipairs(ps) do
+        v[1] = v[1] + total
+        acc[#acc+1] = v
+      end
+    end
     total = total + n
   end
   if total > 0 then
+    printer.showText(acc)
     for _, txt in ipairs(line) do print(txt) end
   end
   -- notations
