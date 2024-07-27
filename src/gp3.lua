@@ -463,7 +463,16 @@ gp3.getNoteAndEffect = function (self, bt, i)
   return string.format('%2d%s', note.fret, effect)
 end
 
+gp3.getChord = function (self, bt)
+  if bt.chord then
+    local s = {}
+    for i = 6, 1, -1 do
+      local v = bt.chord.string[i]
+      s[#s+1] = (v >= 0) and tostring(v) or 'x'
+    end
+    return bt.chord.name or '', table.concat(s, '-')
+  end
+end
+
 return gp3
 
---local bin = utils.read(arg[1])
---gp3:readSong(bin)

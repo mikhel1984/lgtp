@@ -14,6 +14,7 @@ printer.init = function (self, lib, song, tr)
   o._track = tr
   o._tuning = {}
   o._effects = {}
+  o._chords = {}
   for i = 1, song.tracks[tr].strings do
     table.insert(o._tuning, song.tracks[tr].tuning[i])
   end
@@ -85,6 +86,25 @@ printer.alternates = function (self, i, dst)
   end
 end
 
+printer.chords = function (self, bt)
+  local name, ch = self._lib:getChord(bt)
+  if ch then
+    local key = ch .. name
+    local val = self._chords[key]
+    local ind = ''
+    if val then
+      ind = val[1]    
+    else
+      local n = 0
+      for _ in pairs(self._chords) do n = n + 1 end
+      ind = string.format('𝄝%-2d', n+1)    
+      self._chords[key] = {ind, name, ch, n+1}
+    end
+    return ind    
+  end
+  return '   '
+end
+
 printer.measure = function (self, n)
   local m = #self._song.tracks * (n-1) + self._track
   local measure = self._song.measures[m]
@@ -106,8 +126,11 @@ printer.measure = function (self, n)
       table.insert(str[j], note)
       self._effects[string.sub(note, 3)] = true
     end
+    -- beat duration
     dur[#dur+1] = self._lib:getDuration(bt)
-    marks[#marks+1] = '   '
+    -- collect chords
+    marks[#marks+1] = self:chords(bt)
+    -- collect texts
     local t = self._lib:getText(bt)
     if t then txt[#txt+1] = {n0 + 3*(i-1), t} end
   end
@@ -147,6 +170,13 @@ printer.showText = function (ps)
   end
 end
 
+printer.listChords = function (self)
+  local t = {}
+  for _, v in pairs(self._chords) do t[#t+1] = v end
+  table.sort(t, function (a, b) return b[4] > a[4] end)
+  return t
+end
+
 printer.print = function (self)
   local line, total, acc = {}, 0, {}
   local newline = true
@@ -183,6 +213,14 @@ printer.print = function (self)
   if total > 0 then
     printer.showText(acc)
     for _, txt in ipairs(line) do print(txt) end
+  end
+  -- chords
+  local chords = self:listChords()
+  if #chords > 0 then
+    print('\nChords')
+    for _, v in ipairs(chords) do
+      print(v[1], v[2], v[3])
+    end
   end
   -- notations
   local efs = self:listEffects()
