@@ -1,3 +1,13 @@
+#!/usr/local/bin/lua
+--[[  viewer.lua
+
+Parse gtp files, print result in console.
+
+Usage:
+  ./viewer.lua file_name             # show content
+  ./viewer.lua file_name track_name  # show tab
+
+2024, Stanilav Mikhel]]
 
 local WIDTH = 80  -- 'page' width
 
