@@ -1,9 +1,10 @@
 
-local WIDTH = 80
-local printer = {}
-printer.__index = printer
+local WIDTH = 80  -- 'page' width
 
-printer.init = function (self, lib, song, tr)
+local viewer = {}
+viewer.__index = viewer
+
+viewer.init = function (self, lib, song, tr)
   local o = {_lib=lib, _tempo=song.tempo}
   o._song = song
   o._single = lib._version < '5.00'
@@ -23,26 +24,26 @@ printer.init = function (self, lib, song, tr)
   return setmetatable(o, self)
 end
 
-printer.fuse = function (marks, strings, dur)
+viewer.fuse = function (marks, strings, dur)
   local t = {marks}
   for i = 1, #strings do t[#t+1] = strings[i] end
   for i = 1, #dur do t[#t+1] = dur[i] end
   return t, #marks
 end
 
-printer.head = function (self)
+viewer.head = function (self)
   local t = {}
   for _, v in ipairs(self._tuning) do
     t[#t+1] = self._lib:getStringNote(v) .. '|'
   end
   if self._single then
-    return printer.fuse('    ', t, {'dur '})
+    return viewer.fuse('    ', t, {'dur '})
   else 
-    return printer.fuse('    ', t, {'dur ', 'dur2'})
+    return viewer.fuse('    ', t, {'dur ', 'dur2'})
   end
 end
 
-printer.signature = function (self, i, dst)
+viewer.signature = function (self, i, dst)
   local num, denom = self._lib:getSignature(self._song, i)
   if num or denom then
     num = num or self._signNum
@@ -62,7 +63,7 @@ printer.signature = function (self, i, dst)
   end
 end
 
-printer.repeats = function (self, i, begin, dst)
+viewer.repeats = function (self, i, begin, dst)
   local flag = nil
   if begin then
     flag = self._lib:getRepeatBegin(self._song, i)   
@@ -85,7 +86,7 @@ printer.repeats = function (self, i, begin, dst)
   end
 end
 
-printer.alternates = function (self, i, dst)
+viewer.alternates = function (self, i, dst)
   local alt = self._lib:getAlternate(self._song, i)
   if alt then
     table.insert(dst[1], string.format('[%d', alt))
@@ -96,7 +97,7 @@ printer.alternates = function (self, i, dst)
   end
 end
 
-printer.chords = function (self, bt)
+viewer.chords = function (self, bt)
   local name, ch = self._lib:getChord(bt)
   if ch then
     local key = ch .. name
@@ -115,7 +116,7 @@ printer.chords = function (self, bt)
   return '   '
 end
 
-printer.alignDurations = function (self, durs)
+viewer.alignDurations = function (self, durs)
   local acc = {}
   for i, v in ipairs(durs) do
     local sum = 0
@@ -141,7 +142,7 @@ printer.alignDurations = function (self, durs)
   return res
 end
 
-printer.voices = function (self, beats, n, dst)
+viewer.voices = function (self, beats, n, dst)
   -- dst: {marks, strings, duration, text, times}
   local str, dur, marks, txt = {}, {}, {}, {}
   local time = {}
@@ -168,7 +169,7 @@ printer.voices = function (self, beats, n, dst)
   return #beats
 end
 
-printer.multiVoices = function (self, measure, n, dst)
+viewer.multiVoices = function (self, measure, n, dst)
   local lstStr, lstDur, lstMarks = {{}, {}}, {{}, {}}, {{}, {}}
   local lstText, lstTime = {{}, {}}, {{}, {}}
   -- collect data
@@ -178,7 +179,7 @@ printer.multiVoices = function (self, measure, n, dst)
       {lstMarks[i], lstStr[i], lstDur[i], lstText[i], lstTime[i]})
   end
   -- align
-  local seq = printer:alignDurations(lstTime)
+  local seq = viewer:alignDurations(lstTime)
   -- new 
   local marks, str, dur, txt = {}, {}, {{}, {}}, {}
   for i = 1, n do str[i] = {} end
@@ -205,7 +206,7 @@ printer.multiVoices = function (self, measure, n, dst)
   return #seq
 end
 
-printer.splitConcat = function (self, dst)
+viewer.splitConcat = function (self, dst)
   -- marks
   table.insert(dst[1], ' ')
   local marks = table.concat(dst[1])
@@ -224,7 +225,7 @@ printer.splitConcat = function (self, dst)
   return marks, str, dur
 end
 
-printer.compressText = function (self, txt, n, n0)
+viewer.compressText = function (self, txt, n, n0)
   local res = {}
   for i = 1, n do
     if txt[i] then
@@ -234,7 +235,7 @@ printer.compressText = function (self, txt, n, n0)
   return res
 end
 
-printer.measure = function (self, n)
+viewer.measure = function (self, n)
   local m = #self._song.tracks * (n-1) + self._track
   local measure = self._song.measures[m]
   local str, marks = {}, {}
@@ -257,11 +258,11 @@ printer.measure = function (self, n)
   self:repeats(n, false, {marks, str, dur})
   -- to text
   marks, str, dur = self:splitConcat({marks, str, dur})
-  local combo, len = printer.fuse(marks, str, dur)
+  local combo, len = viewer.fuse(marks, str, dur)
   return combo, len, self:compressText(txt, nf, n0)
 end
 
-printer.listEffects = function (self)
+viewer.listEffects = function (self)
   local map = require('src.mapping')
   local t = {}
   for k, v in pairs(map.effects) do
@@ -270,7 +271,7 @@ printer.listEffects = function (self)
   return t  
 end
 
-printer.showText = function (ps)
+viewer.showText = function (ps)
   local prev, acc = 1, {}
   for _, p in ipairs(ps) do
     local n = p[1]-1
@@ -284,21 +285,21 @@ printer.showText = function (ps)
   end
 end
 
-printer.listChords = function (self)
+viewer.listChords = function (self)
   local t = {}
   for _, v in pairs(self._chords) do t[#t+1] = v end
   table.sort(t, function (a, b) return b[4] > a[4] end)
   return t
 end
 
-printer.print = function (self)
+viewer.print = function (self)
   local line, total, acc = {}, 0, {}
   local newline = true
   
   for i = 1, #self._song.measureHeaders do
     local measure, n, ps = self:measure(i)
     if total + n > WIDTH then
-      printer.showText(acc)
+      viewer.showText(acc)
       for _, txt in ipairs(line) do print(txt) end
       line, total, acc = {}, 0, {}
       newline = true
@@ -325,7 +326,7 @@ printer.print = function (self)
     total = total + n
   end
   if total > 0 then
-    printer.showText(acc)
+    viewer.showText(acc)
     for _, txt in ipairs(line) do print(txt) end
   end
   -- chords
@@ -383,7 +384,7 @@ else
   print('Key:', lib:getKeySignName(song.key, 0))
   print('Tempo:', song.tempo, lib:getTripletFeel(song) and '(triplet feel)' or '')  
 
-  local pr = printer:init(lib, song, n)
+  local pr = viewer:init(lib, song, n)
   pr:print()
 
 end
