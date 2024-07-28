@@ -391,6 +391,22 @@ end
 
 gp3.getDuration = function (self, beat)
   local dur = nil
+  local num = 1
+  local denom = 1 << (beat.duration + 2)
+  if beat.tuplet then
+    if     beat.tuplet == 3 then num, denom = num*2, denom*3
+    elseif beat.tuplet == 5 then num, denom = num*4, denom*5
+    elseif beat.tuplet == 6 then num, denom = num*4, denom*6
+    elseif beat.tuplet == 7 then num, denom = num*4, denom*7
+    elseif beat.tuplet == 9 then num, denom = num*8, denom*9
+    elseif beat.tuplet == 10 then num, denom = num*8, denom*10
+    elseif beat.tuplet == 11 then num, denom = num*8, denom*11
+    elseif beat.tuplet == 12 then num, denom = num*8, denom*12
+    elseif beat.tuplet == 13 then num, denom = num*8, denom*13
+    end
+  end
+  if beat.dotted then num, denom = num*3, denom*2 end
+
   if beat.duration > 2 and not beat.dotted then
     -- use ' to define duration
     dur = mapping.duration[-beat.duration]
@@ -399,9 +415,9 @@ gp3.getDuration = function (self, beat)
   end
   -- mark tuplets
   if beat.tuplet and string.find(dur, '|') then
-    return string.gsub(dur, '|', string.format('%x', beat.tuplet))  
+    return string.gsub(dur, '|', string.format('%x', beat.tuplet)), {num, denom}
   end
-  return dur
+  return dur, {num, denom}
 end
 
 gp3.getText = function (self, beat)

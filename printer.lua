@@ -6,6 +6,7 @@ printer.__index = printer
 printer.init = function (self, lib, song, tr)
   local o = {_lib=lib, _tempo=song.tempo}
   o._song = song
+  o._single = lib._version < '5.00'
   o._triplet = lib:getTripletFeel(song)
   o._keyRoot = song.key
   o._keyType = 0
@@ -25,8 +26,8 @@ end
 printer.fuse = function (marks, strings, dur)
   local t = {marks}
   for i = 1, #strings do t[#t+1] = strings[i] end
-  t[#t+1] = dur
-  return t, #dur  
+  for i = 1, #dur do t[#t+1] = dur[i] end
+  return t, #marks
 end
 
 printer.head = function (self)
@@ -34,7 +35,11 @@ printer.head = function (self)
   for _, v in ipairs(self._tuning) do
     t[#t+1] = self._lib:getStringNote(v) .. '|'
   end
-  return printer.fuse('    ', t, 'dur ')
+  if self._single then
+    return printer.fuse('    ', t, {'dur '})
+  else 
+    return printer.fuse('    ', t, {'dur ', 'dur2'})
+  end
 end
 
 printer.signature = function (self, i, dst)
@@ -50,7 +55,8 @@ printer.signature = function (self, i, dst)
     table.insert(dst[1], '    ')  -- marks
     local ds = dst[2]  -- strings
     for i = 1, #t do table.insert(ds[i], t[i]) end
-    table.insert(dst[3], '    ')  -- duration
+    local dur = dst[3]  -- duration
+    for i = 1, #dur do table.insert(dur[i], '    ') end
   end
 end
 
@@ -72,7 +78,8 @@ printer.repeats = function (self, i, begin, dst)
     table.insert(dst[1], mark)  -- marks
     local ds = dst[2]  -- strings
     for i = 1, #t do table.insert(ds[i], t[i]) end
-    table.insert(dst[3], '   ')  -- duration
+    local dur = dst[3]  -- duration
+    for i = 1, #dur do table.insert(dur[i], '   ') end
   end
 end
 
@@ -82,7 +89,8 @@ printer.alternates = function (self, i, dst)
     table.insert(dst[1], string.format('[%d', alt))
     local ds = dst[2]
     for i = 1, #ds do table.insert(ds[i], '  ') end
-    table.insert(dst[3], '  ')    
+    local dur = dst[3]  -- duration
+    for i = 1, #dur do table.insert(dur[i], '  ') end
   end
 end
 
@@ -105,45 +113,174 @@ printer.chords = function (self, bt)
   return '   '
 end
 
+printer.alignDurations = function (self, durs)
+  local acc = {}
+  for i, v in ipairs(durs) do
+    local sum = 0
+    for j, w in ipairs(v) do
+      local t = w[2]  -- num, denom
+      local x = (100.0*t[1]) / t[2]
+      sum = sum + x
+      acc[#acc+1] = {sum, i, j}  -- time, voice, beat
+    end
+  end
+  table.sort(acc, function (a, b) return b[1] > a[1] end)
+  local res = {{1, 1}}
+  for i = 2, #acc do
+    local curr, prev = acc[i], acc[i-1]
+    if curr[1]-prev[1] > 0.1 then  -- new bit
+      res[#res+1] = {[curr[2]] = curr[3]}
+    else                           -- same bit
+      res[#res][curr[2]] = curr[3]
+    end
+  end
+  return res
+end
+
+printer.voices = function (self, beats, n, dst)
+  local str, dur, marks, txt = {}, {}, {}, {}
+  local len = {}
+  local n0 = #table.concat(dst[1]) + 1
+  for i = 1, n do str[i] = {} end
+  for i, bt in ipairs(beats) do
+    -- strings
+    for j = 1, n do
+      local note = self._lib:getNoteAndEffect(bt, j)
+      table.insert(str[j], note)
+      self._effects[string.sub(note, 3)] = true
+    end
+    -- beat duration
+    local d, l = self._lib:getDuration(bt)
+    dur[i], len[i] = d, l
+    -- chords
+    marks[i] = self:chords(bt)
+    -- text
+    local t = self._lib:getText(bt)
+    if t then txt[#txt+1] = {n0 + 3*(i-1), t} end
+  end
+  table.move(marks, 1, #marks, #dst[1]+1, dst[1])
+  table.move(dur, 1, #dur, #dst[3]+1, dst[3])
+  table.move(txt, 1, #txt, #dst[4]+1, dst[4])
+  table.move(len, 1, #len, #dst[5]+1, dst[5])
+  for i, s in ipairs(str) do table.move(s, 1, #s, #dst[2][i]+1, dst[2][i]) end
+end
+
+printer.multiVoices = function (self, measure, n, dst)
+  local lstStr, lstDur, lstMarks, lstText = {}, {}, {}, {}
+  -- collect data
+  for k, beats in ipairs(measure.voice) do
+    local str, dur, marks, txt = {}, {}, {}, {}
+    for i = 1, n do str[i] = {} end
+    for i, bt in ipairs(beats) do
+      -- strings
+      for j = 1, n do
+        local note = self._lib:getNoteAndEffect(bt, j)
+        table.insert(kstr[j], note)
+        self._effects[string.sub(note, 3)] = true
+      end
+      -- beat duration
+      dur[i] = {self._lib:getDuration(bt)}
+      -- chords
+      marks[i] = self:chords(bt)
+      -- text
+      local t = self._lib:getText(bt)
+      if t then txt[#txt+1] = {i, t} end
+    end
+    lstStr[k] = str
+    lstDur[k] = dur
+    lstMarks[k] = marks
+    lstText[k] = txt
+  end
+  if not self._single then
+    local str, dur, marks, txt = {}, {}, {}, {}
+    local seq = self:alignDurations(lstDur)
+    for i, v in ipairs(seq) do
+      
+    end
+  end
+  if self._single then
+    table.move(lstMarks[1], 1, #lstMarks[1], 1, dst[1])
+    table.move(lstDur[1], 1, #lstDur[1], 1, dst[3][1])
+    local str = lstStr[1]
+    for i = 1, #str do table.move(str[i], 1, #str[i], 1, dst[2][i]) end
+    
+
+  end
+  -- align
+end
+
+printer.splitConcat = function (self, dst)
+  -- marks
+  table.insert(dst[1], ' ')
+  local marks = table.concat(dst[1])
+  -- strings
+  local str = dst[2]
+  for i = 1, #str do 
+    table.insert(str[i], '|') 
+    str[i] = table.concat(str[i])
+  end
+  -- durations
+  local dur = dst[3]  -- duration
+  for i = 1, #dur do 
+    table.insert(dur[i], ' ') 
+    dur[i] = table.concat(dur[i])
+  end
+  return marks, str, dur
+end
+
 printer.measure = function (self, n)
   local m = #self._song.tracks * (n-1) + self._track
   local measure = self._song.measures[m]
-  local beats = measure.voice[1]  -- TODO fix
-  local str, dur, marks = {}, {}, {}
-  for i = 1, #self._tuning do str[#str+1] = {} end
+  local str, marks = {}, {}
+  local dur = self._single and {{}} or {{}, {}}
+  for i = 1, #self._tuning do str[i] = {} end
   -- check signature
   self:signature(n, {marks, str, dur})
   -- check first reprease
   self:repeats(n, true, {marks, str, dur})
   -- check alternates
   self:alternates(n, {marks, str, dur})
-  -- check text
-  local txt, n0 = {}, #table.concat(dur)+1
-  -- notes
-  for i, bt in ipairs(beats) do
-    for j = 1, #self._tuning do
-      local note = self._lib:getNoteAndEffect(bt, j)
-      table.insert(str[j], note)
-      self._effects[string.sub(note, 3)] = true
-    end
-    -- beat duration
-    dur[#dur+1] = self._lib:getDuration(bt)
-    -- collect chords
-    marks[#marks+1] = self:chords(bt)
-    -- collect texts
-    local t = self._lib:getText(bt)
-    if t then txt[#txt+1] = {n0 + 3*(i-1), t} end
+  local txt = {}
+  if self._single then
+    self:voices(measure.voice[1], #self._tuning, {marks, str, dur[1], txt, {}})
   end
+  -- check text
+  --local txt, n0 = {}, #table.concat(marks)+1
+  ---- notes
+  --local strLst, durLst, marksLst = {}, {}, {}
+  --for k, beats in ipairs(measure.voice) do
+  --  local kstr, kdur, kmarks = {}, {}, {}
+  --  for i = 1, #self._tuning do kstr[#kstr+1] = {} end
+  --  for i, bt in ipairs(beats) do
+  --    for j = 1, #self._tuning do
+  --      local note = self._lib:getNoteAndEffect(bt, j)
+  --      table.insert(kstr[j], note)
+  --      self._effects[string.sub(note, 3)] = true
+  --    end
+  --    -- beat duration
+  --    kdur[#kdur+1] = {self._lib:getDuration(bt)}
+  --    -- collect chords
+  --    kmarks[#kmarks+1] = self:chords(bt)
+  --    -- collect texts
+  --    local t = self._lib:getText(bt)
+  --    if t then txt[#txt+1] = {n0 + 3*(i-1), t} end
+  --  end
+  --  marksLst[k] = kmarks
+  --  strLst[k] = kstr
+  --  durLst[k] = kdur
+  --end
   -- check second reprease
   self:repeats(n, false, {marks, str, dur})
   -- to text
-  for i = 1, #str do
-    table.insert(str[i], '|')
-    str[i] = table.concat(str[i])
-  end
-  dur[#dur+1] = ' '
-  marks[#marks+1] = ' '
-  local combo, len = printer.fuse(table.concat(marks), str, table.concat(dur))
+  marks, str, dur = self:splitConcat({marks, str, dur})
+  --for i = 1, #str do
+  --  table.insert(str[i], '|')
+  --  str[i] = table.concat(str[i])
+  --end
+  --dur[#dur+1] = ' '
+  --marks[#marks+1] = ' '
+  --local combo, len = printer.fuse(table.concat(marks), str, table.concat(dur))
+  local combo, len = printer.fuse(marks, str, dur)
   return combo, len, txt
 end
 
