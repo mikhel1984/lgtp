@@ -117,18 +117,20 @@ printer.alignDurations = function (self, durs)
   local acc = {}
   for i, v in ipairs(durs) do
     local sum = 0
-    for j, w in ipairs(v) do
-      local t = w[2]  -- num, denom
+    for j, t in ipairs(v) do
+      -- t = {num, denom}
       local x = (100.0*t[1]) / t[2]
       sum = sum + x
-      acc[#acc+1] = {sum, i, j}  -- time, voice, beat
+      if j < #v then
+        acc[#acc+1] = {sum, i, j+1}  -- time, voice, beat
+      end
     end
   end
   table.sort(acc, function (a, b) return b[1] > a[1] end)
   local res = {{1, 1}}
-  for i = 2, #acc do
+  for i = 1, #acc do
     local curr, prev = acc[i], acc[i-1]
-    if curr[1]-prev[1] > 0.1 then  -- new bit
+    if not prev or curr[1]-prev[1] > 0.1 then  -- new bit
       res[#res+1] = {[curr[2]] = curr[3]}
     else                           -- same bit
       res[#res][curr[2]] = curr[3]
@@ -138,9 +140,9 @@ printer.alignDurations = function (self, durs)
 end
 
 printer.voices = function (self, beats, n, dst)
+  -- dst: {marks, strings, duration, text, times}
   local str, dur, marks, txt = {}, {}, {}, {}
-  local len = {}
-  local n0 = #table.concat(dst[1]) + 1
+  local time = {}
   for i = 1, n do str[i] = {} end
   for i, bt in ipairs(beats) do
     -- strings
@@ -150,63 +152,55 @@ printer.voices = function (self, beats, n, dst)
       self._effects[string.sub(note, 3)] = true
     end
     -- beat duration
-    local d, l = self._lib:getDuration(bt)
-    dur[i], len[i] = d, l
+    dur[i], time[i] = self._lib:getDuration(bt)
     -- chords
     marks[i] = self:chords(bt)
     -- text
-    local t = self._lib:getText(bt)
-    if t then txt[#txt+1] = {n0 + 3*(i-1), t} end
+    txt[i] = self._lib:getText(bt)
   end
   table.move(marks, 1, #marks, #dst[1]+1, dst[1])
   table.move(dur, 1, #dur, #dst[3]+1, dst[3])
-  table.move(txt, 1, #txt, #dst[4]+1, dst[4])
-  table.move(len, 1, #len, #dst[5]+1, dst[5])
+  table.move(txt, 1, #beats, #dst[4]+1, dst[4])
+  table.move(time, 1, #time, #dst[5]+1, dst[5])
   for i, s in ipairs(str) do table.move(s, 1, #s, #dst[2][i]+1, dst[2][i]) end
+  return #beats
 end
 
 printer.multiVoices = function (self, measure, n, dst)
-  local lstStr, lstDur, lstMarks, lstText = {}, {}, {}, {}
+  local lstStr, lstDur, lstMarks = {{}, {}}, {{}, {}}, {{}, {}}
+  local lstText, lstTime = {{}, {}}, {{}, {}}
   -- collect data
-  for k, beats in ipairs(measure.voice) do
-    local str, dur, marks, txt = {}, {}, {}, {}
-    for i = 1, n do str[i] = {} end
-    for i, bt in ipairs(beats) do
-      -- strings
-      for j = 1, n do
-        local note = self._lib:getNoteAndEffect(bt, j)
-        table.insert(kstr[j], note)
-        self._effects[string.sub(note, 3)] = true
-      end
-      -- beat duration
-      dur[i] = {self._lib:getDuration(bt)}
-      -- chords
-      marks[i] = self:chords(bt)
-      -- text
-      local t = self._lib:getText(bt)
-      if t then txt[#txt+1] = {i, t} end
-    end
-    lstStr[k] = str
-    lstDur[k] = dur
-    lstMarks[k] = marks
-    lstText[k] = txt
-  end
-  if not self._single then
-    local str, dur, marks, txt = {}, {}, {}, {}
-    local seq = self:alignDurations(lstDur)
-    for i, v in ipairs(seq) do
-      
-    end
-  end
-  if self._single then
-    table.move(lstMarks[1], 1, #lstMarks[1], 1, dst[1])
-    table.move(lstDur[1], 1, #lstDur[1], 1, dst[3][1])
-    local str = lstStr[1]
-    for i = 1, #str do table.move(str[i], 1, #str[i], 1, dst[2][i]) end
-    
-
+  for i = 1, 2 do
+    for j = 1, n do lstStr[i][j] = {} end
+    self:voices(measure.voice[i], n, 
+      {lstMarks[i], lstStr[i], lstDur[i], lstText[i], lstTime[i]})
   end
   -- align
+  local seq = printer:alignDurations(lstTime)
+  -- new 
+  local marks, str, dur, txt = {}, {}, {{}, {}}, {}
+  for i = 1, n do str[i] = {} end
+  for i, grp in ipairs(seq) do
+    local b1, b2 = grp[1], grp[2]
+    -- marks
+    marks[i] = lstMarks[1][b1] or lstMarks[2][b2]
+    -- durations
+    dur[1][i] = lstDur[1][b1] or '   '
+    dur[2][i] = lstDur[2][b2] or '   '
+    -- strings
+    for j = 1, n do
+      local s1 = lstStr[1][j][b1]
+      local s2 = lstStr[2][j][b2]
+      str[j][i] = (s1 and s2 and (s1 == '---' and s2 or s1)) or s1 or s2
+    end
+    -- text
+    txt[i] = lstText[1][b1] or lstText[2][b2]
+  end
+  table.move(marks, 1, #marks, #dst[1]+1, dst[1])
+  table.move(txt, 1, #seq, #dst[4]+1, dst[4])
+  for i, s in ipairs(str) do table.move(s, 1, #s, #dst[2][i]+1, dst[2][i]) end
+  for i, d in ipairs(dur) do table.move(d, 1, #d, #dst[3][i]+1, dst[3][i]) end
+  return #seq
 end
 
 printer.splitConcat = function (self, dst)
@@ -228,6 +222,16 @@ printer.splitConcat = function (self, dst)
   return marks, str, dur
 end
 
+printer.compressText = function (self, txt, n, n0)
+  local res = {}
+  for i = 1, n do
+    if txt[i] then
+      res[#res+1] = {n0 + 3*(i-1), txt[i]}
+    end
+  end
+  return res
+end
+
 printer.measure = function (self, n)
   local m = #self._song.tracks * (n-1) + self._track
   local measure = self._song.measures[m]
@@ -240,10 +244,14 @@ printer.measure = function (self, n)
   self:repeats(n, true, {marks, str, dur})
   -- check alternates
   self:alternates(n, {marks, str, dur})
-  local txt = {}
+  -- save texts
+  local txt, n0, nf = {}, #table.concat(marks)+1, 0
   if self._single then
-    self:voices(measure.voice[1], #self._tuning, {marks, str, dur[1], txt, {}})
+    nf = self:voices(measure.voice[1], #self._tuning, {marks, str, dur[1], txt, {}})
+  else
+    nf = self:multiVoices(measure, #self._tuning, {marks, str, dur, txt})
   end
+  -- 
   -- check text
   --local txt, n0 = {}, #table.concat(marks)+1
   ---- notes
@@ -281,7 +289,7 @@ printer.measure = function (self, n)
   --marks[#marks+1] = ' '
   --local combo, len = printer.fuse(table.concat(marks), str, table.concat(dur))
   local combo, len = printer.fuse(marks, str, dur)
-  return combo, len, txt
+  return combo, len, self:compressText(txt, nf, n0)
 end
 
 printer.listEffects = function (self)
