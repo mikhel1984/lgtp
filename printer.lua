@@ -44,7 +44,9 @@ end
 
 printer.signature = function (self, i, dst)
   local num, denom = self._lib:getSignature(self._song, i)
-  if num and denom then
+  if num or denom then
+    num = num or self._signNum
+    denom = denom or self._signDenom
     local t = {}
     for i = 1, #self._tuning do t[#t+1] = '   :' end
     local j = (#t > 2) and 2 or 1    
@@ -251,43 +253,10 @@ printer.measure = function (self, n)
   else
     nf = self:multiVoices(measure, #self._tuning, {marks, str, dur, txt})
   end
-  -- 
-  -- check text
-  --local txt, n0 = {}, #table.concat(marks)+1
-  ---- notes
-  --local strLst, durLst, marksLst = {}, {}, {}
-  --for k, beats in ipairs(measure.voice) do
-  --  local kstr, kdur, kmarks = {}, {}, {}
-  --  for i = 1, #self._tuning do kstr[#kstr+1] = {} end
-  --  for i, bt in ipairs(beats) do
-  --    for j = 1, #self._tuning do
-  --      local note = self._lib:getNoteAndEffect(bt, j)
-  --      table.insert(kstr[j], note)
-  --      self._effects[string.sub(note, 3)] = true
-  --    end
-  --    -- beat duration
-  --    kdur[#kdur+1] = {self._lib:getDuration(bt)}
-  --    -- collect chords
-  --    kmarks[#kmarks+1] = self:chords(bt)
-  --    -- collect texts
-  --    local t = self._lib:getText(bt)
-  --    if t then txt[#txt+1] = {n0 + 3*(i-1), t} end
-  --  end
-  --  marksLst[k] = kmarks
-  --  strLst[k] = kstr
-  --  durLst[k] = kdur
-  --end
-  -- check second reprease
+    -- check second reprease
   self:repeats(n, false, {marks, str, dur})
   -- to text
   marks, str, dur = self:splitConcat({marks, str, dur})
-  --for i = 1, #str do
-  --  table.insert(str[i], '|')
-  --  str[i] = table.concat(str[i])
-  --end
-  --dur[#dur+1] = ' '
-  --marks[#marks+1] = ' '
-  --local combo, len = printer.fuse(table.concat(marks), str, table.concat(dur))
   local combo, len = printer.fuse(marks, str, dur)
   return combo, len, self:compressText(txt, nf, n0)
 end

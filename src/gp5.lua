@@ -6,6 +6,7 @@ GuitarPro v5 tab parser.
 
 local utils = require('src.utils')
 local gp4 = require('src.gp4')
+local mapping = require('src.mapping')
 
 
 local gp5 = {}
@@ -440,7 +441,48 @@ gp5.getTripletFeel = function (self, song)
   return song.measureHeaders[1].triplet ~= 0
 end
 
+gp5.getNoteAndEffect = function (self, bt, i)
+  local note = bt.notes[i]
+  if not note then 
+    return '---'
+  elseif note.type == 3 then
+    return ' x ' 
+  end
+  local effect = ' '
+  local mf = mapping.effects
+  if note.ghostNote then effect = mf.ghost
+  elseif bt.effects then
+    local ect = bt.effects.flags1
+    if     ect & 0x10 ~= 0 then effect = mf.fadeIn
+    elseif bt.effects.slap then effect = mf.ind[bt.effects.slap]
+    elseif bt.effects.tremoloBar then effect = mf.tremoloBar
+    elseif bt.effects.vibrato then effect = mf.vibrato
+    elseif bt.effects.strokeUp then effect = mf.strokeUp
+    elseif bt.effects.strokeDown then effect = mf.strokeDown
+    end
+  elseif note.effect then
+    local ect = note.effect
+    if     ect.letRing then effect = mf.letRing
+    elseif ect.hammer  then effect = mf.hammer
+    elseif ect.bend    then effect = mf.bend
+    elseif ect.slide   then effect = mf.slide
+    elseif ect.trill   then effect = mf.trill
+    elseif ect.vibrato then effect = mf.vibrato
+    elseif ect.tremoloPicking then effect = mf.tremoloPicking
+    elseif ect.palmMute then effect = mf.palmMute
+    elseif ect.stoccato then effect = mf.stoccato
+    elseif ect.harmonic then
+      if ect.harmonic.type == 1 then effect = mf.naturalHarm
+      elseif ect.harmonic.type == 2 then effect = mf.artificialHarm  -- ???
+      end
+    end
+  elseif note.effect2 then
+    local ect = note.effect2
+    if ect.accentuatedNote then effect = mf.accentuated
+    end
+  end
+  return string.format('%2d%s', note.fret, effect)
+end
+
 return gp5
 
--- local bin = utils.read(arg[1])
--- gp5:readSong(bin)
