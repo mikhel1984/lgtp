@@ -69,10 +69,10 @@ map.string = {
 }
 
 map.effects = {
-  ghost=')', naturalHarm='*', artificialHarm='A', vibrato='~', fadeIn='<',
-  tap='T', slap='S', pop='P', letRing='L', hammer='⏜', bend='^', slide='/',
-  accentuated='>', tremoloBar='v', trill='𝆖', tremoloPicking="t", palmMute='M',
-  stoccato='.', strokeUp='↓', strokeDown='↑',
+  ghost=')', natural_harm='*', artificial_harm='A', vibrato='~', fade_in='<',
+  tap='T', slap='S', pop='P', let_ring='L', hammer='⏜', bend='^', slide='/',
+  accentuated='>', tremoloBar='v', trill='𝆖', tremolo_picking="t", palm_mute='M',
+  stoccato='.', stroke_up='↓', stroke_down='↑',
   ind={}, 
 }
 map.effects.ind[1] = map.effects.tap
