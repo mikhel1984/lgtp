@@ -246,7 +246,7 @@ gp5.readTrackRSE = function (self, data)
     for i = 1, 4 do
       rse.equalizer[i] = data:sbyte()
     end
-    rse.effects  = self:readRSEInstrumentEffect(data)
+    rse.effects = self:readRSEInstrumentEffect(data)
   end
   return rse
 end
@@ -443,10 +443,10 @@ end
 
 gp5.getNoteAndEffect = function (self, bt, i)
   local note = bt.notes[i]
-  if not note then 
+  if not note then
     return '---'
   elseif note.type == 3 then
-    return ' x ' 
+    return ' x '
   end
   local effect = ' '
   local mf = mapping.effects

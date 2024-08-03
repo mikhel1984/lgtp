@@ -48,7 +48,7 @@ viewer.head = function (self)
   end
   if self._single then
     return viewer.fuse('    ', t, {'dur '})
-  else 
+  else
     return viewer.fuse('    ', t, {'dur ', 'dur2'})
   end
 end
@@ -60,7 +60,7 @@ viewer.signature = function (self, i, dst)
     denom = denom or self._signDenom
     local t = {}
     for i = 1, #self._tuning do t[#t+1] = '   :' end
-    local j = (#t > 2) and 2 or 1    
+    local j = (#t > 2) and 2 or 1
     t[j] = string.format('%2d :', num)
     t[#t-j+1] = string.format('%2d :', denom)
     self._signNum, self._signDenom = num, denom
@@ -76,7 +76,7 @@ end
 viewer.repeats = function (self, i, begin, dst)
   local flag = nil
   if begin then
-    flag = self._lib:getRepeatBegin(self._song, i)   
+    flag = self._lib:getRepeatBegin(self._song, i)
   else
     flag = self._lib:getRepeatEnd(self._song, i)
   end
@@ -114,14 +114,14 @@ viewer.chords = function (self, bt)
     local val = self._chords[key]
     local ind = ''
     if val then
-      ind = val[1]    
+      ind = val[1]
     else
       local n = 0
       for _ in pairs(self._chords) do n = n + 1 end
-      ind = string.format('𝄝%-2d', n+1)    
+      ind = string.format('𝄝%-2d', n+1)
       self._chords[key] = {ind, name, ch, n+1}
     end
-    return ind    
+    return ind
   end
   return '   '
 end
@@ -185,12 +185,12 @@ viewer.multiVoices = function (self, measure, n, dst)
   -- collect data
   for i = 1, 2 do
     for j = 1, n do lstStr[i][j] = {} end
-    self:voices(measure.voice[i], n, 
+    self:voices(measure.voice[i], n,
       {lstMarks[i], lstStr[i], lstDur[i], lstText[i], lstTime[i]})
   end
   -- align
   local seq = viewer:alignDurations(lstTime)
-  -- new 
+  -- new
   local marks, str, dur, txt = {}, {}, {{}, {}}, {}
   for i = 1, n do str[i] = {} end
   for i, grp in ipairs(seq) do
@@ -222,14 +222,14 @@ viewer.splitConcat = function (self, dst)
   local marks = table.concat(dst[1])
   -- strings
   local str = dst[2]
-  for i = 1, #str do 
-    table.insert(str[i], '|') 
+  for i = 1, #str do
+    table.insert(str[i], '|')
     str[i] = table.concat(str[i])
   end
   -- durations
   local dur = dst[3]  -- duration
-  for i = 1, #dur do 
-    table.insert(dur[i], ' ') 
+  for i = 1, #dur do
+    table.insert(dur[i], ' ')
     dur[i] = table.concat(dur[i])
   end
   return marks, str, dur
@@ -278,7 +278,7 @@ viewer.listEffects = function (self)
   for k, v in pairs(map.effects) do
     if self._effects[v] then t[#t+1] = string.format('%s %s', v, k) end
   end
-  return t  
+  return t
 end
 
 viewer.showText = function (ps)
@@ -290,7 +290,7 @@ viewer.showText = function (ps)
     prev = n + #p[2] + 1
   end
   print()
-  if #acc > 0 then 
+  if #acc > 0 then
     print(table.concat(acc))
   end
 end
@@ -305,7 +305,7 @@ end
 viewer.print = function (self)
   local line, total, acc = {}, 0, {}
   local newline = true
-  
+
   for i = 1, #self._song.measureHeaders do
     local measure, n, ps = self:measure(i)
     if total + n > WIDTH then
@@ -315,7 +315,7 @@ viewer.print = function (self)
       newline = true
     end
     if newline then
-      -- show head      
+      -- show head
       local head, k = self:head()
       head[1] = string.format('%3d ', i)
       total = k
@@ -349,7 +349,7 @@ viewer.print = function (self)
   end
   -- notations
   local efs = self:listEffects()
-  if #efs > 0 then 
+  if #efs > 0 then
     print('\nNotation')
     for i = 1, #efs, 4 do
       local t = {}
@@ -392,7 +392,7 @@ else
   print('', song.info.title)
   print(string.format('%s [%s]', song.tracks[n].name, lib:getInstrument(song, n)))
   print('Key:', lib:getKeySignName(song.key, 0))
-  print('Tempo:', song.tempo, lib:getTripletFeel(song) and '(triplet feel)' or '')  
+  print('Tempo:', song.tempo, lib:getTripletFeel(song) and '(triplet feel)' or '')
 
   local pr = viewer:init(lib, song, n)
   pr:print()

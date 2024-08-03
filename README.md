@@ -1,4 +1,4 @@
-# lgtp
+# ltab
 Read gp3 / gp4 / gp5 files and show tabulature in console.
 Based on [PyGuitarPro](https://github.com/Perlence/PyGuitarPro) lib.
 

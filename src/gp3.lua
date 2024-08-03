@@ -448,10 +448,10 @@ end
 
 gp3.getNoteAndEffect = function (self, bt, i)
   local note = bt.notes[i]
-  if not note then 
+  if not note then
     return '---'
   elseif note.type == 3 then
-    return ' x ' 
+    return ' x '
   end
   local effect = ' '
   local mf = mapping.effects

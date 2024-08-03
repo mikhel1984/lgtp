@@ -126,19 +126,19 @@ gp4.readBeatEffects = function (self, data)
   local effects = {flags1=flags1, flags2=flags2}
   if flags1 & 0x02 ~= 0 then effects.vibrato = true end
   if flags1 & 0x10 ~= 0 then effects.fade_in  = true end
-  if flags1 & 0x20 ~= 0 then 
-    effects.slap       = data:sbyte() 
+  if flags1 & 0x20 ~= 0 then
+    effects.slap = data:sbyte()
   end
-  if flags2 & 0x04 ~= 0 then 
-    effects.tremoloBar = self:readTremoloBar(data) 
+  if flags2 & 0x04 ~= 0 then
+    effects.tremoloBar = self:readTremoloBar(data)
   end
   if flags1 & 0x40 ~= 0 then
     effects.stroke_down = (data:sbyte() > 0)
     effects.stroke_up   = (data:sbyte() > 0)
   end
   if flags2 & 0x01 ~= 0 then effects.hasRasgeuado = true end
-  if flags2 & 0x02 ~= 0 then 
-    effects.pickStroke = data:sbyte() 
+  if flags2 & 0x02 ~= 0 then
+    effects.pickStroke = data:sbyte()
   end
   return effects
 end
@@ -199,10 +199,10 @@ end
 
 gp4.getNoteAndEffect = function (self, bt, i)
   local note = bt.notes[i]
-  if not note then 
+  if not note then
     return '---'
   elseif note.type == 3 then
-    return ' x ' 
+    return ' x '
   end
   local effect = ' '
   local mf = mapping.effects
@@ -234,7 +234,6 @@ gp4.getNoteAndEffect = function (self, bt, i)
   end
   return string.format('%2d%s', note.fret, effect)
 end
-
 
 return gp4
 
