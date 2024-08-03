@@ -18,9 +18,6 @@ viewer.init = function (self, lib, song, tr)
   local o = {_lib=lib, _tempo=song.tempo}
   o._song = song
   o._single = lib._version < '5.00'
-  o._triplet = lib:getTripletFeel(song)
-  o._keyRoot = song.key
-  o._keyType = 0
   o._signNum = 0
   o._signDenom = 0
   o._track = tr
@@ -30,7 +27,6 @@ viewer.init = function (self, lib, song, tr)
   for i = 1, song.tracks[tr].strings do
     table.insert(o._tuning, song.tracks[tr].tuning[i])
   end
-
   return setmetatable(o, self)
 end
 
@@ -46,11 +42,8 @@ viewer.head = function (self)
   for _, v in ipairs(self._tuning) do
     t[#t+1] = self._lib:getStringNote(v) .. '|'
   end
-  if self._single then
-    return viewer.fuse('    ', t, {'dur '})
-  else
-    return viewer.fuse('    ', t, {'dur ', 'dur2'})
-  end
+  return viewer.fuse('    ', t,
+    {'dur ', (not self._single) and 'dur2' or nil})
 end
 
 viewer.signature = function (self, i, dst)
@@ -359,6 +352,10 @@ viewer.print = function (self)
   end
 end
 
+--========================================
+--           Processing
+--========================================
+
 local utils = require('src.utils')
 local f = utils.read(arg[1])
 local ver = utils.version(f)
@@ -384,7 +381,7 @@ if not arg[2] then
   end
 
 else
-  -- specific track
+  -- show specific track
   local n = assert(tonumber(arg[2]), 'Expected track number')
   if n < 1 or n > #song.tracks then
     error('Expected number between 1 and '..tonumber(#song.tracks))
