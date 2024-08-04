@@ -454,11 +454,14 @@ gp5.getNoteAndEffect = function (self, bt, i)
   elseif bt.effects then
     local ect = bt.effects.flags1
     if     ect & 0x10 ~= 0 then effect = mf.fade_in
+    elseif ect & 0x04 ~= 0 then effect = mf.natural_harm
+    elseif ect & 0x08 ~= 0 then effect = mf.artificial_harm
+    elseif ect & 0x01 ~= 0 then effect = mf.vibrato
     elseif bt.effects.slap then effect = mf.ind[bt.effects.slap]
     elseif bt.effects.tremoloBar then effect = mf.tremoloBar
     elseif bt.effects.vibrato then effect = mf.vibrato
-    elseif bt.effects.stroke_up then effect = mf.stroke_up
-    elseif bt.effects.stroke_down then effect = mf.stroke_down
+    elseif bt.effects.stroke_up then effect = mf.stroke_down
+    elseif bt.effects.stroke_down then effect = mf.stroke_up
     end
   elseif note.effect then
     local ect = note.effect
@@ -467,13 +470,12 @@ gp5.getNoteAndEffect = function (self, bt, i)
     elseif ect.bend    then effect = mf.bend
     elseif ect.slide   then effect = mf.slide
     elseif ect.trill   then effect = mf.trill
-    elseif ect.vibrato then effect = mf.vibrato
     elseif ect.tremolo_picking then effect = mf.tremolo_picking
     elseif ect.palm_mute then effect = mf.palm_mute
     elseif ect.stoccato then effect = mf.stoccato
     elseif ect.harmonic then
       if ect.harmonic.type == 1 then effect = mf.natural_harm
-      elseif ect.harmonic.type == 2 then effect = mf.artificial_harm  -- ???
+      else effect = mf.artificial_harm
       end
     end
   elseif note.effect2 then
