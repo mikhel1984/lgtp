@@ -250,8 +250,8 @@ gp3.readBeatEffects = function (self, data)
     end
   end
   if efs & 0x40 ~= 0 then
-    effects.stroke_down = (data:sbyte() > 0)
-    effects.stroke_up   = (data:sbyte() > 0)
+    effects.strokeDown = (data:sbyte() > 0)
+    effects.strokeUp   = (data:sbyte() > 0)
   end
   return effects
 end
@@ -464,9 +464,9 @@ gp3.getNoteAndEffect = function (self, bt, i)
     elseif ect & 0x01 ~= 0 then effect = mf.vibrato
     elseif ect & 0x10 ~= 0 then effect = mf.fade_in
     elseif bt.effects.slap then effect = mf.ind[bt.effects.slap]
-    elseif bt.effects.tremoloBar then effect = mf.tremoloBar
-    elseif bt.effects.stroke_up then effect = mf.stroke_up
-    elseif bt.effects.stroke_down then effect = mf.stroke_down
+    elseif bt.effects.tremoloBar then effect = mf.tremolo_bar
+    elseif bt.effects.strokeUp then effect = mf.stroke_up
+    elseif bt.effects.strokeDown then effect = mf.stroke_down
     end
   elseif note.effect then
     local ect = note.effect

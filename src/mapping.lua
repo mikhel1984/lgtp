@@ -71,7 +71,7 @@ map.string = {
 map.effects = {
   ghost=')', natural_harm='*', artificial_harm='A', vibrato='~', fade_in='<',
   tap='T', slap='S', pop='P', let_ring='L', hammer='⏜', bend='^', slide='/',
-  accentuated='>', tremoloBar='v', trill='𝆖', tremolo_picking="t", palm_mute='M',
+  accentuated='>', tremolo_bar='v', trill='𝆖', tremolo_picking="t", palm_mute='M',
   stoccato='.', stroke_up='↓', stroke_down='↑',
   ind={},
 }

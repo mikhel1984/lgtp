@@ -133,8 +133,8 @@ gp4.readBeatEffects = function (self, data)
     effects.tremoloBar = self:readTremoloBar(data)
   end
   if flags1 & 0x40 ~= 0 then
-    effects.stroke_down = (data:sbyte() > 0)
-    effects.stroke_up   = (data:sbyte() > 0)
+    effects.strokeDown = (data:sbyte() > 0)
+    effects.strokeUp   = (data:sbyte() > 0)
   end
   if flags2 & 0x01 ~= 0 then effects.hasRasgeuado = true end
   if flags2 & 0x02 ~= 0 then
@@ -169,11 +169,11 @@ gp4.readNoteEffect = function (self, data)
   if flags1 & 0x02 ~= 0 then effects.hammer = true end
   if flags1 & 0x08 ~= 0 then effects.let_ring = true end
   if flags2 & 0x01 ~= 0 then effects.stoccato = true end
-  if flags2 & 0x02 ~= 0 then effects.palm_mute = true end
+  if flags2 & 0x02 ~= 0 then effects.palmMute = true end
   if flags2 & 0x04 ~= 0 then effects.vibrato = true end
   if flags1 & 0x01 ~= 0 then effects.bend  = self:readBend(data) end
   if flags1 & 0x10 ~= 0 then effects.grace = self:readGrace(data) end
-  if flags2 & 0x04 ~= 0 then effects.tremolo_picking = data:sbyte() end
+  if flags2 & 0x04 ~= 0 then effects.tremoloPicking = data:sbyte() end
   if flags2 & 0x08 ~= 0 then effects.slide = self:readSlides(data) end
   if flags2 & 0x10 ~= 0 then effects.harmonic = self:readHarmonic(data) end
   if flags2 & 0x20 ~= 0 then effects.trill    = self:readTrill(data) end
@@ -215,10 +215,10 @@ gp4.getNoteAndEffect = function (self, bt, i)
     elseif ect & 0x01 ~= 0 then effect = mf.vibrato
     elseif ect & 0x10 ~= 0 then effect = mf.fade_in
     elseif bt.effects.slap then effect = mf.ind[bt.effects.slap]
-    elseif bt.effects.tremoloBar then effect = mf.tremoloBar
+    elseif bt.effects.tremoloBar then effect = mf.tremolo_bar
     elseif bt.effects.vibrato then effect = mf.vibrato
-    elseif bt.effects.stroke_up then effect = mf.stroke_up
-    elseif bt.effects.stroke_down then effect = mf.stroke_down
+    elseif bt.effects.strokeUp then effect = mf.stroke_up
+    elseif bt.effects.strokeDown then effect = mf.stroke_down
     end
   elseif note.effect then
     local ect = note.effect
@@ -227,8 +227,8 @@ gp4.getNoteAndEffect = function (self, bt, i)
     elseif ect.bend    then effect = mf.bend
     elseif ect.slide   then effect = mf.slide
     elseif ect.trill   then effect = mf.trill
-    elseif ect.tremolo_picking then effect = mf.tremolo_picking
-    elseif ect.palm_mute then effect = mf.palm_mute
+    elseif ect.tremoloPicking then effect = mf.tremolo_picking
+    elseif ect.palmMute then effect = mf.palm_mute
     elseif ect.stoccato then effect = mf.stoccato
     end
   end
