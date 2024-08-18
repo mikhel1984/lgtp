@@ -80,6 +80,13 @@ data.ibstring = function (self)
   return txt
 end
 
+-- [string]
+data.nstring = function (self, n)
+  local txt, pos = unpack(sformat('c%d', n), self.file, self.pos)
+  self.pos = pos
+  return txt
+end
+
 -- marker color
 data.color = function (self)
   local r, g, b, pos = unpack('BBB', self.file, self.pos)
@@ -91,6 +98,23 @@ end
 data.skip = function (self, n)
   self.pos = self.pos + n
 end
+
+data.ptshort = function (self, v)
+  v, self.pos = unpack('<I2', self.file, self.pos)
+  return v
+end
+
+data.ptint = function (self, v)
+  v, self.pos = unpack('<I4', self.file, self.pos)
+  return v
+end
+
+data.ptstring = function (self)
+  local len = data.byte(self)
+  local n = (len < 0xff) and len or data.ptshort(self)
+  return data.nstring(self, n)
+end
+
 
 local utils = {data=data}
 
