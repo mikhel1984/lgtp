@@ -80,7 +80,6 @@ data.ibstring = function (self)
   return txt
 end
 
--- [string]
 data.nstring = function (self, n)
   local txt, pos = unpack(sformat('c%d', n), self.file, self.pos)
   self.pos = pos
@@ -99,20 +98,26 @@ data.skip = function (self, n)
   self.pos = self.pos + n
 end
 
+-- unsigned short
 data.ptshort = function (self, v)
   v, self.pos = unpack('<I2', self.file, self.pos)
   return v
 end
 
+-- unsigned int
 data.ptint = function (self, v)
   v, self.pos = unpack('<I4', self.file, self.pos)
   return v
 end
 
-data.ptstring = function (self)
-  local len = data.byte(self)
-  local n = (len < 0xff) and len or data.ptshort(self)
-  return data.nstring(self, n)
+--[byte|short][string]
+data.ptstring = function (self, txt)
+  local n, pos = unpack('B', self.file, self.pos)
+  if n >= 0xff then  -- short
+    n, pos = unpack('<I2', self.file, pos)
+  end
+  txt, self.pos = unpack(sformat('c%d', n), self.file, pos)
+  return txt
 end
 
 
