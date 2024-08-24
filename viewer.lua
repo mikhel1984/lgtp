@@ -357,15 +357,23 @@ end
 --========================================
 
 local utils = require('src.utils')
+-- read file
 local f = utils.read(arg[1])
+-- check type
 local ver = utils.version(f)
+-- load library
 local lib = require('src.gp'..ver)
-
+-- parse
 local song = lib:readSong(f)
 
+-- common information
+local info = lib:getSongInfo(song)
+local tracks = lib:getTracks(song)
+
+-- process arguments
 if not arg[2] then
+
   -- show info and exit
-  local info = song.info
   print('Title:', info.title)
   print('Artist:', info.artist)
   print('Album:', info.album)
@@ -376,20 +384,21 @@ if not arg[2] then
     end
   end
   print('\nTracks')
-  for i, t in ipairs(song.tracks) do
-    print(string.format(' %d. %s [%s]', i, t.name, lib:getInstrument(song, i)))
+  for i, t in ipairs(tracks) do
+    print(string.format(' %d. %s [%s]', i, t.name, t.instrument))
   end
 
 else
+
   -- show specific track
   local n = assert(tonumber(arg[2]), 'Expected track number')
-  if n < 1 or n > #song.tracks then
-    error('Expected number between 1 and '..tonumber(#song.tracks))
+  if n < 1 or n > #tracks then
+    error('Expected number between 1 and '..tonumber(#tracks))
   end
-  print('', song.info.title)
-  print(string.format('%s [%s]', song.tracks[n].name, lib:getInstrument(song, n)))
-  print('Key:', lib:getKeySignName(song.key, 0))
-  print('Tempo:', song.tempo, lib:getTripletFeel(song) and '(triplet feel)' or '')
+  print('', info.title)
+  print(string.format('%s [%s]', tracks[n].name, tracks[n].instrument))
+  print('Key:', lib:getKeySignName(song))
+  print('Tempo:', info.tempo, lib:getTripletFeel(song) and '(triplet feel)' or '')
 
   local pr = viewer:init(lib, song, n)
   pr:print()

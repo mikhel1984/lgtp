@@ -373,18 +373,13 @@ gp3.readSlides = function (self, data) return {} end
 
 --========================================
 
-gp3.getInstrument = function (self, song, n)
-  local track = song.tracks[n]
-  local index = track.channel[1]
-  local instrument = song.midi[index].instrument
-  return mapping.instruments[instrument] or ''
-end
-
 gp3.getTripletFeel = function (self, song)
   return song.triplet
 end
 
-gp3.getKeySignName = function (self, root, tp)
+gp3.getKeySignName = function (self, song)
+  local root = song.key
+  local tp = 0  -- ??
   tp = tp + 1  -- [0,1] to [1,2]
   return mapping.keySignature[tp][root] .. (tp == 1 and ' major' or ' minor')
 end
@@ -488,6 +483,28 @@ gp3.getChord = function (self, bt)
     end
     return bt.chord.name or '', table.concat(s, '-')
   end
+end
+
+gp3.getSongInfo = function (self, song)
+  local info = {}
+  info.title = song.info.title
+  info.artist = song.info.artist
+  info.album = song.info.album
+  info.notice = song.info.notice
+  info.tempo = song.tempo
+  return info
+end
+
+gp3.getTracks = function (self, song)
+  local res = {}
+  for i, t in ipairs(song.tracks) do
+    local index = t.channel[1]
+    local instrument = song.midi[index].instrument
+    res[i] = {
+      name = t.name, 
+      instrument = mapping.instruments[instrument] or ''}
+  end
+  return res
 end
 
 return gp3
