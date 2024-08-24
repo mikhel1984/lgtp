@@ -149,12 +149,14 @@ ptb.readHeaderItems = function (self, data)
       end
       local n = data:ptshort()
       str = data:nstring(n)
+      print(n, str)
     end
   end
   return items, str
 end
 
 ptb.readTrackInfo = function (self, data)
+  print('track info')
   local info = {}
   info.number = data:byte()
   info.name = data:ptstring()
@@ -179,6 +181,7 @@ ptb.readTrackInfo = function (self, data)
 end
 
 ptb.readChord = function (self, data)
+  print('read chord')
   local chord = {}
   chord.key = data:ptshort()
   data:skip(1)
@@ -193,6 +196,7 @@ ptb.readChord = function (self, data)
 end
 
 ptb.readFloatingText = function (self, data)
+  print('read floating text')
   local txt = {}
   txt.string = data:ptstring()
   txt.left = data:int()
@@ -201,6 +205,7 @@ ptb.readFloatingText = function (self, data)
   txt.bottom = data:int()
   data:skip(1)
   txt.font = self:readFontSetting(data)
+  return txt
 end
 
 ptb.readFontSetting = function (self, data)
@@ -216,6 +221,7 @@ ptb.readFontSetting = function (self, data)
 end
 
 ptb.readGuitarIn = function (self, data)
+  print('read guitar in')
   local g = {}
   g.section = data:ptshort()
   g.staff = data:byte()
@@ -226,6 +232,7 @@ ptb.readGuitarIn = function (self, data)
 end
 
 ptb.readTempoMarker = function (self, data)
+  print('read tempo marker')
   local marker = {}
   marker.section = data:ptshort()
   marker.position = data:byte()
@@ -242,10 +249,10 @@ end
 
 ptb.readDynamic = function (self, data)
   data:skip(2+2+2)
-  return {}
 end
 
 ptb.readSectionSymbol = function (self, data)
+  print 'read section symbol'
   local sym = {}
   sym.section = data:ptshort()
   sym.position = data:byte()
@@ -255,6 +262,7 @@ ptb.readSectionSymbol = function (self, data)
 end
 
 ptb.readSection = function (self, data)
+  print 'read section'
   local section = {}
   section.left = data:int()
   section.top = data:int()
@@ -351,22 +359,22 @@ ptb.readDirection = function (self, data)
   return dir
 end
 
----------
-
-
-ptb.readRhythmSlash = function (self, data)
-  data:skip(1+1+4)  -- byte, byte, int
-  return {}
+ptb.readChordText = function (self, data)
+  data:skip(1+2+1+2+1)
 end
 
-ptb.readStaff = function (self, data, st)
+ptb.readRhythmSlash = function (self, data)
+  data:skip(1+1+4)  
+end
+
+ptb.readStaff = function (self, data)
   data:skip(5)
   local staff = {}
   for voice = 1, 2 do
-    local items = self:readHeaderItems()
+    local items = self:readHeaderItems(data)
     local pos = {}
     for j = 1, items do
-      pos[j] = self:readPosition(data, st, voice)
+      pos[j] = self:readPosition(data)
       if j < items then data:skip(2) end
     end
     staff[voice] = pos
@@ -374,7 +382,7 @@ ptb.readStaff = function (self, data, st)
   return staff
 end
 
-ptb.readPosition = function (self, data, staff, voice)
+ptb.readPosition = function (self, data)
   local beat = {staff=staff, voice=voice}
   local position = data:byte()
   local beaming = data:byte()
@@ -394,7 +402,7 @@ ptb.readPosition = function (self, data, staff, voice)
     if tp & 0x08 ~= 0 then multiBarRest = count end
   end
 
-  local itemCount = self:readHeaderItems()
+  local itemCount = self:readHeaderItems(data)
   beat.note = {}
   for i = 1, itemCount do
     beat.note[i] = self:readNote(data)
@@ -410,6 +418,28 @@ ptb.readPosition = function (self, data, staff, voice)
   beat.arpeggioDown = (data1 & 0x40 ~= 0)
   beat.enters = (beaming - (beaming % 8))/8 + 1
   beat.times = beaming % 8 + 1
+  return beat
+end
+
+ptb.readNote = function (self, data)
+  local note = {}
+  local pos = data:byte()
+  local simp = data:ptshort()
+  local count = data:byte()
+  note.add = {}
+  for i = 1, count do
+    data:skip(2)
+    local d3 = data:byte()
+    local d4 = data:byte()
+    note.add[i] = {}
+    note.add[i].bend = (101 == d4) and (d3/16 + 1) or 0
+    note.add[i].slide = (100 == d4)
+  end
+  note.value = pos & 0x1f
+  note.string = ((pos & 0xe0) >> 5) + 1
+  note.tied = (simp & 0x01) ~= 0
+  note.dead = (simp & 0x02) ~= 0
+  return note
 end
 
 
