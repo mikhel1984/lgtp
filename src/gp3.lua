@@ -22,6 +22,7 @@ gp3.readSong = function (self, s)
   song.tempo   = data:int()
   song.key     = data:int()
   song.midi    = self:readMidiChannels(data)
+  song.voices = 1
   local measures = data:int()
   local tracks   = data:int()
   song.measureHeaders = {}
@@ -504,6 +505,13 @@ gp3.getTracks = function (self, song)
       name = t.name, 
       instrument = mapping.instruments[instrument] or ''}
   end
+  return res
+end
+
+gp3.getTuning = function (self, song, tr)
+  local res = {}
+  local ref = song.tracks[tr]
+  for i = 1, ref.strings do res[i] = ref.tuning[i] end
   return res
 end
 

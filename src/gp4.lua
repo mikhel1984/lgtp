@@ -31,6 +31,7 @@ gp4.readSong = function (self, s)
   song.key     = data:int()
   data:skip(1)
   song.midi    = self:readMidiChannels(data)
+  song.voices = 1
   local measures = data:int(data)
   local tracks   = data:int(data)
   song.measureHeaders = {}

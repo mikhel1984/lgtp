@@ -38,6 +38,7 @@ gp5.readSong = function (self, s)
   song.key          = data:sbyte()
   data:skip(4)
   song.midi         = self:readMidiChannels(data)
+  song.voices = 2
   local directions  = self:readDirections(data)
   song.reverb       = data:int()
   local measures    = data:int()

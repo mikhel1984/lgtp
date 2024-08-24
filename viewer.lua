@@ -15,18 +15,17 @@ local viewer = {}
 viewer.__index = viewer
 
 viewer.init = function (self, lib, song, tr)
-  local o = {_lib=lib, _tempo=song.tempo}
-  o._song = song
-  o._single = lib._version < '5.00'
-  o._signNum = 0
-  o._signDenom = 0
-  o._track = tr
-  o._tuning = {}
-  o._effects = {}
-  o._chords = {}
-  for i = 1, song.tracks[tr].strings do
-    table.insert(o._tuning, song.tracks[tr].tuning[i])
-  end
+  local o = {
+    _lib=lib,
+    _song = song,
+    _single = (song.voices == 1),
+    _signNum = 0,
+    _signDenom = 0,
+    _track = tr,
+    _tuning = lib:getTuning(song, tr),
+    _effects = {},
+    _chords = {},
+  }
   return setmetatable(o, self)
 end
 
@@ -362,7 +361,7 @@ local f = utils.read(arg[1])
 -- check type
 local ver = utils.version(f)
 -- load library
-local lib = require('src.gp'..ver)
+local lib = require('src.'..ver)
 -- parse
 local song = lib:readSong(f)
 

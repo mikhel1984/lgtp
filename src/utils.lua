@@ -134,11 +134,12 @@ end
 -- Get GTP version
 utils.version = function (s)
   if #s < 31 then return nil end
-  local txt = unpack('c30', s, 2)
+  -- guitar pro
+  local txt = unpack('c30', s, 2), nil
   if string.find(txt, '^CLIPBOARD') then
-    return string.match(txt, 'CLIPBOARD GP (%d)')
+     return 'gp' .. string.match(txt, 'CLIPBOARD GP (%d)')
   else
-    return string.match(txt, 'FICHIER GUITAR PRO v(%d)')
+    return 'gp' .. string.match(txt, 'FICHIER GUITAR PRO v(%d)')
   end
 end
 
