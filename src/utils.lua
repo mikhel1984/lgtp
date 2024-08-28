@@ -135,6 +135,9 @@ end
 utils.version = function (s)
   if #s < 31 then return nil end
   -- guitar pro
+  if string.sub(s, 1, 4) == 'ptab' then
+    return 'ptb'
+  end
   local txt = unpack('c30', s, 2), nil
   if string.find(txt, '^CLIPBOARD') then
      return 'gp' .. string.match(txt, 'CLIPBOARD GP (%d)')

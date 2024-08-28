@@ -442,6 +442,28 @@ ptb.readNote = function (self, data)
   return note
 end
 
+--=======================================
 
-local ff = utils.read(arg[1])
-ptb:readSong(ff)
+ptb.getSongInfo = function (self, song)
+  local info = {}
+  info.title = song.info.name
+  info.artist = song.info.author
+  info.album = song.info.album
+  info.tempo = song.tempo
+  info.notice = {}
+  if song.info.guitarInstructions then 
+    table.insert(info.notice, song.info.guitarInstructions)
+  end
+  if song.info.bassInstructions then
+    table.insert(info.notice, song.info.bassInstructions)
+  end
+  if song.info.instructions then
+    table.insert(song.info.instructions)
+  end
+  return info
+end
+
+return ptb
+
+--local ff = utils.read(arg[1])
+--ptb:readSong(ff)
