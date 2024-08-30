@@ -47,6 +47,9 @@ end
 
 viewer.signature = function (self, i, dst)
   local num, denom = self._lib:getSignature(self._song, i)
+  if num == self._signNum and denom == self._signDenom then
+    return  -- don't repeat known signature
+  end
   if num or denom then
     num = num or self._signNum
     denom = denom or self._signDenom
@@ -238,8 +241,7 @@ viewer.compressText = function (self, txt, n, n0)
 end
 
 viewer.measure = function (self, n)
-  local m = #self._song.tracks * (n-1) + self._track
-  local measure = self._song.measures[m]
+  local measure = self._lib:getTrackMeasure(self._song, self._track, n)
   local str, marks = {}, {}
   local dur = self._single and {{}} or {{}, {}}
   for i = 1, #self._tuning do str[i] = {} end

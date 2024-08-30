@@ -442,6 +442,11 @@ gp3.getAlternate = function (self, song, m)
   return song.measureHeaders[m].alternate
 end
 
+gp3.getTrackMeasure = function (self, song, tr, n)
+  local m = #song.tracks * (n-1) + tr
+  return song.measures[m]
+end
+
 gp3.getNoteAndEffect = function (self, bt, i)
   local note = bt.notes[i]
   if not note then

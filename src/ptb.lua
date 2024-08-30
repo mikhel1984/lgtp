@@ -8,10 +8,10 @@ local ptb = {}
 
 ptb.readSong = function (self, s)
   local data = utils.data:init(s)
-  local ver = self:readVersion(data)
+  local ver  = self:readVersion(data)
   assert(ver == 'ptab-4', 'Unknown file format')
   local song = {}
-  song.info = self:readSongInfo(data)
+  song.info   = self:readSongInfo(data)
   song.track1 = self:readDataInstruments(data)
   song.track2 = self:readDataInstruments(data)
   return song
@@ -28,42 +28,42 @@ ptb.readSongInfo = function (self, data)
   songInfo.classification = data:byte()
   if songInfo.classification == 0 then
     data:skip(1)
-    songInfo.name = data:ptstring()
+    songInfo.name        = data:ptstring()
     songInfo.interpreter = data:ptstring()
     songInfo.releaseType = data:byte()
     if songInfo.releaseType == 0 then
       songInfo.albumType = data:byte()
-      songInfo.album = data:ptstring()
+      songInfo.album     = data:ptstring()
       songInfo.albumYear = data:ptshort()
       songInfo.liveRecording = data:bool()
     elseif songInfo.releaseType == 1 then
-      songInfo.album = data:ptstring()
+      songInfo.album     = data:ptstring()
       songInfo.liveRecording = data:bool()
     elseif songInfo.releaseType == 2 then
-      songInfo.album = data:ptstring()
-      songInfo.albumDay = data:ptshort()
+      songInfo.album     = data:ptstring()
+      songInfo.albumDay  = data:ptshort()
       songInfo.albumMonth = data:ptshort()
       songInfo.albumYear = data:ptshort()
     end
     if data:byte() == 0 then
-      songInfo.author = data:ptstring()
+      songInfo.author   = data:ptstring()
       songInfo.lyricist = data:ptstring()
     end
-    songInfo.arrenger = data:ptstring()
+    songInfo.arrenger          = data:ptstring()
     songInfo.guitarTranscriber = data:ptstring()
-    songInfo.bassTranscriber = data:ptstring()
-    songInfo.copyright = data:ptstring()
-    songInfo.lyrics = data:ptstring()
+    songInfo.bassTranscriber   = data:ptstring()
+    songInfo.copyright         = data:ptstring()
+    songInfo.lyrics            = data:ptstring()
     songInfo.guitarInstructions = data:ptstring()
-    songInfo.bassInstructions = data:ptstring()
+    songInfo.bassInstructions  = data:ptstring()
   elseif songInfo.classification == 1 then
-    songInfo.name = data:ptstring()
-    songInfo.album = data:ptstring()
-    songInfo.style = data:ptshort()
-    songInfo.level = data:byte()
+    songInfo.name   = data:ptstring()
+    songInfo.album  = data:ptstring()
+    songInfo.style  = data:ptshort()
+    songInfo.level  = data:byte()
     songInfo.author = data:ptstring()
     songInfo.instructions = data:ptstring()
-    songInfo.copyright = data:ptstring()
+    songInfo.copyright    = data:ptstring()
   end
   return songInfo
 end
@@ -141,13 +141,13 @@ end
 ptb.readHeaderItems = function (self, data)
   local items, str = data:ptshort(), nil
   if items ~= 0 then
-    local header = data:ptshort()
+    local header   = data:ptshort()
     if header == 0xffff then
       if data:ptshort() ~= 1 then
         return -1, str
       end
       local n = data:ptshort()
-      str = data:nstring(n)
+      str     = data:nstring(n)
     end
   end
   return items, str
@@ -157,17 +157,17 @@ ptb.readTrackInfo = function (self, data)
   print('track info')
   local info = {}
   info.number = data:byte()
-  info.name = data:ptstring()
+  info.name   = data:ptstring()
   info.instrument = data:byte()
-  info.volume = data:byte()
+  info.volume  = data:byte()
   info.balance = data:byte()
-  info.reverb = data:byte()
-  info.chorus = data:byte()
+  info.reverb  = data:byte()
+  info.chorus  = data:byte()
   info.tremolo = data:byte()
-  info.phaser = data:byte()
-  info.capo = data:byte()
+  info.phaser  = data:byte()
+  info.capo    = data:byte()
   info.tuningName = data:ptstring()
-  info.offset = data:byte()
+  info.offset  = data:byte()
   -- strings
   local strings = {}
   local len = data:byte()
@@ -181,7 +181,7 @@ end
 ptb.readChord = function (self, data)
   print('read chord')
   local chord = {}
-  chord.key = data:ptshort()
+  chord.key   = data:ptshort()
   data:skip(1)
   chord.modification = data:ptshort()
   data:skip(2)
@@ -197,44 +197,44 @@ ptb.readFloatingText = function (self, data)
   print('read floating text')
   local txt = {}
   txt.string = data:ptstring()
-  txt.left = data:int()
-  txt.top = data:int()
-  txt.right = data:int()
+  txt.left   = data:int()
+  txt.top    = data:int()
+  txt.right  = data:int()
   txt.bottom = data:int()
   data:skip(1)
-  txt.font = self:readFontSetting(data)
+  txt.font   = self:readFontSetting(data)
   return txt
 end
 
 ptb.readFontSetting = function (self, data)
   local font = {}
-  font.name = data:ptstring()
-  font.size = data:int()
+  font.name   = data:ptstring()
+  font.size   = data:int()
   font.weight = data:int()
   font.italic = data:bool()
   font.underline = data:bool()
   font.strikeout = data:bool()
-  font.color = data:int()
+  font.color  = data:int()
   return font
 end
 
 ptb.readGuitarIn = function (self, data)
   print('read guitar in')
   local g = {}
-  g.section = data:ptshort()
-  g.staff = data:byte()
+  g.section  = data:ptshort()
+  g.staff    = data:byte()
   g.position = data:byte()
   data:skip(1)
-  g.info = data:byte()
+  g.info     = data:byte()
   return g
 end
 
 ptb.readTempoMarker = function (self, data)
   print('read tempo marker')
   local marker = {}
-  marker.section = data:ptshort()
+  marker.section  = data:ptshort()
   marker.position = data:byte()
-  marker.tempo = data:ptshort()
+  marker.tempo    = data:ptshort()
   local d = data:ptshort()
   marker.description = data:ptstring()
   if d & 0x01 ~= 0 then
@@ -252,7 +252,7 @@ end
 ptb.readSectionSymbol = function (self, data)
   print 'read section symbol'
   local sym = {}
-  sym.section = data:ptshort()
+  sym.section  = data:ptshort()
   sym.position = data:byte()
   local d = data:int()
   sym.endNumber = (d >> 16)
@@ -262,12 +262,11 @@ end
 ptb.readSection = function (self, data)
   print 'read section'
   local section = {}
-  section.left = data:int()
-  section.top = data:int()
-  section.right = data:int()
+  section.left   = data:int()
+  section.top    = data:int()
+  section.right  = data:int()
   section.bottom = data:int()
-
-  local lastBar = data:byte()
+  local lastBar  = data:byte()
   data:skip(4)
   section.barLine = self:readBarLine(data)
 
@@ -318,11 +317,11 @@ end
 ptb.readBarLine = function (self, data)
   local bar = {}
   bar.position = data:byte()
-  local tp = data:byte()
+  local tp     = data:byte()
 
   bar.repeatStart = (tp >> 5 == 3)
   bar.repeatClose = (tp >> 5 == 4) and (tp - 128) or 0
-  bar.keySignature = data:byte()
+  bar.keySignature  = data:byte()
   bar.timeSignature = self:readTimeSignature(data)
   bar.rehearsalSign = self:readRehearsalSign(data)
   return bar
@@ -330,11 +329,11 @@ end
 
 ptb.readTimeSignature = function (self, data)
   local sign = {}
-  local d = data:int()
+  local d     = data:int()
   sign.pulses = data:byte()
   local d24 = d >> 24
-  sign.numerator = (d24 - (d24 % 8))/8 + 1
-  sign.denominator = 2^(d24 % 8)
+  sign.numerator = ((d24 - (d24 % 8)) >> 3) + 1
+  sign.denominator = 1 << (d24 % 8)
   return sign
 end
 
@@ -348,10 +347,10 @@ end
 ptb.readDirection = function (self, data)
   local dir = {}
   dir.position = data:byte()
-  local count = data:byte()
+  local count  = data:byte()
   dir.val = {}
   for i = 1, count do
-    local d = data:ptshort()
+    local d    = data:ptshort()
     dir.val[i] = {d >> 8, (d & 0xc0) >> 6, d & 0x1f}
   end
   return dir
@@ -383,12 +382,12 @@ end
 ptb.readPosition = function (self, data)
   local beat = {staff=staff, voice=voice}
   local position = data:byte()
-  local beaming = data:byte()
+  local beaming  = data:byte()
   beaming = (beaming < 128) and beaming or (beaming - 128)
   data:skip(1)
-  local data1 = data:byte()
+  local data1   = data:byte()
   data:skip(1)
-  local data3 = data:byte()
+  local data3   = data:byte()
   beat.duration = data:byte()
 
   local multiBarRest = 1
@@ -396,7 +395,7 @@ ptb.readPosition = function (self, data)
   for i = 1, complexCount do
     local count = data:ptshort()
     data:skip(1)
-    local tp = data:byte()
+    local tp    = data:byte()
     if tp & 0x08 ~= 0 then multiBarRest = count end
   end
 
@@ -421,14 +420,14 @@ end
 
 ptb.readNote = function (self, data)
   local note = {}
-  local pos = data:byte()
-  local simp = data:ptshort()
+  local pos   = data:byte()
+  local simp  = data:ptshort()
   local count = data:byte()
   note.add = {}
   for i = 1, count do
     data:skip(2)
-    local d3 = data:byte()
-    local d4 = data:byte()
+    local d3  = data:byte()
+    local d4  = data:byte()
     note.add[i] = {}
     note.add[i].bend = (101 == d4) and (d3/16 + 1) or 0
     note.add[i].slide = (100 == d4)
@@ -485,6 +484,24 @@ ptb.getKeySignName = function (self, song) return "" end
 ptb.getTripletFeel = function (self, song)
   return song.track1.tempoMarker[1] and song.track1.tempoMarker[1].tripletFeel
     or song.track2.tempoMarker[1] and song.track2.tempoMarker[1].tripletFeel
+end
+
+ptb.getTuning = function (self, song, tr)
+  local t = song.track1.tracks[tr] or song.track2.tracks[tr - #song.track1.tracks]
+  local res = {}
+  for i = 1, #t.strings do res[i] = t.strings[i] end
+  return res
+end
+
+ptb.getStringNote = function (self, v)
+  local note = v % 12
+  return mapping.string[note+1] .. tostring(v // 12)
+end
+
+ptb.getSignature = function (self, song, m)
+  local s = song.track1.section[1] or song.track2.section[1]
+  s = s.barLine.timeSignature
+  return s.numerator, s.denominator
 end
 
 return ptb
