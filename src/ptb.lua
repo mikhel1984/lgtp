@@ -1,7 +1,7 @@
 
 
 local utils = require('src.utils')
---local mapping = require('src.mapping')
+local mapping = require('src.mapping')
 
 
 local ptb = {}
@@ -10,12 +10,11 @@ ptb.readSong = function (self, s)
   local data = utils.data:init(s)
   local ver = self:readVersion(data)
   assert(ver == 'ptab-4', 'Unknown file format')
-  print(ver)
   local song = {}
   song.info = self:readSongInfo(data)
-  for k, v in pairs(song.info) do print(k, v) end
   song.track1 = self:readDataInstruments(data)
   song.track2 = self:readDataInstruments(data)
+  return song
 end
 
 ptb.readVersion = function (self, data)
@@ -149,7 +148,6 @@ ptb.readHeaderItems = function (self, data)
       end
       local n = data:ptshort()
       str = data:nstring(n)
-      print(n, str)
     end
   end
   return items, str
@@ -449,7 +447,9 @@ ptb.getSongInfo = function (self, song)
   info.title = song.info.name
   info.artist = song.info.author
   info.album = song.info.album
-  info.tempo = song.tempo
+  info.tempo = song.track1.tempoMarker[1] and song.track1.tempoMarker[1].tempo
+    or song.track2.tempoMarker[1] and song.track2.tempoMarker[2].tempo
+    or 120
   info.notice = {}
   if song.info.guitarInstructions then 
     table.insert(info.notice, song.info.guitarInstructions)
@@ -463,7 +463,29 @@ ptb.getSongInfo = function (self, song)
   return info
 end
 
+ptb.getTracks = function (self, song)
+  local res = {}
+  for _, v in ipairs(song.track1.tracks) do
+    res[#res+1] = {
+      name = v.name,
+      instrument = mapping.instruments[v.instrument] 
+    }
+  end
+  for _, v in ipairs(song.track2.tracks) do
+    res[#res+1] = {
+      name = v.name,
+      instrument = mapping.instruments[v.instrument] 
+    }
+  end
+  return res
+end
+
+ptb.getKeySignName = function (self, song) return "" end
+
+ptb.getTripletFeel = function (self, song)
+  return song.track1.tempoMarker[1] and song.track1.tempoMarker[1].tripletFeel
+    or song.track2.tempoMarker[1] and song.track2.tempoMarker[1].tripletFeel
+end
+
 return ptb
 
---local ff = utils.read(arg[1])
---ptb:readSong(ff)
