@@ -131,6 +131,7 @@ ptb.readDataInstruments = function (self, data)
   inst.section = {}
   items = self:readHeaderItems(data)
   for j = 1, items do
+    print('section', j)
     inst.section[j] = self:readSection(data)
     if j < items then data:skip(2) end
   end
@@ -154,7 +155,6 @@ ptb.readHeaderItems = function (self, data)
 end
 
 ptb.readTrackInfo = function (self, data)
-  print('track info')
   local info = {}
   info.number = data:byte()
   info.name   = data:ptstring()
@@ -179,7 +179,6 @@ ptb.readTrackInfo = function (self, data)
 end
 
 ptb.readChord = function (self, data)
-  print('read chord')
   local chord = {}
   chord.key   = data:ptshort()
   data:skip(1)
@@ -194,7 +193,6 @@ ptb.readChord = function (self, data)
 end
 
 ptb.readFloatingText = function (self, data)
-  print('read floating text')
   local txt = {}
   txt.string = data:ptstring()
   txt.left   = data:int()
@@ -219,7 +217,6 @@ ptb.readFontSetting = function (self, data)
 end
 
 ptb.readGuitarIn = function (self, data)
-  print('read guitar in')
   local g = {}
   g.section  = data:ptshort()
   g.staff    = data:byte()
@@ -230,7 +227,6 @@ ptb.readGuitarIn = function (self, data)
 end
 
 ptb.readTempoMarker = function (self, data)
-  print('read tempo marker')
   local marker = {}
   marker.section  = data:ptshort()
   marker.position = data:byte()
@@ -250,7 +246,6 @@ ptb.readDynamic = function (self, data)
 end
 
 ptb.readSectionSymbol = function (self, data)
-  print 'read section symbol'
   local sym = {}
   sym.section  = data:ptshort()
   sym.position = data:byte()
@@ -260,7 +255,7 @@ ptb.readSectionSymbol = function (self, data)
 end
 
 ptb.readSection = function (self, data)
-  print 'read section'
+  --print "section"
   local section = {}
   section.left   = data:int()
   section.top    = data:int()
@@ -268,7 +263,8 @@ ptb.readSection = function (self, data)
   section.bottom = data:int()
   local lastBar  = data:byte()
   data:skip(4)
-  section.barLine = self:readBarLine(data)
+  section.barLine = {}
+  section.barLine[1] = self:readBarLine(data)
 
   -- direction
   local count = self:readHeaderItems(data)
@@ -298,15 +294,15 @@ ptb.readSection = function (self, data)
   section.staffs = {}
   count = self:readHeaderItems(data)
   for j = 1, count do
+    print('staff', j)
     section.staffs[j] = self:readStaff(data)
     if j < count then data:skip(2) end
   end
 
   -- music bar
-  section.barLine = {}
   count = self:readHeaderItems(data)
   for j = 1, count do
-    section.barLine[j] = self:readBarLine(data)
+    section.barLine[j+1] = self:readBarLine(data)
     if j < count then data:skip(2) end
   end
 
@@ -318,6 +314,7 @@ ptb.readBarLine = function (self, data)
   local bar = {}
   bar.position = data:byte()
   local tp     = data:byte()
+  --print('bar pos', bar.position, tp)
 
   bar.repeatStart = (tp >> 5 == 3)
   bar.repeatClose = (tp >> 5 == 4) and (tp - 128) or 0
@@ -368,6 +365,7 @@ ptb.readStaff = function (self, data)
   data:skip(5)
   local staff = {}
   for voice = 1, 2 do
+    print('voice', voice)
     local items = self:readHeaderItems(data)
     local pos = {}
     for j = 1, items do
@@ -379,9 +377,11 @@ ptb.readStaff = function (self, data)
   return staff
 end
 
+-- read beat
 ptb.readPosition = function (self, data)
-  local beat = {staff=staff, voice=voice}
-  local position = data:byte()
+  local beat = {}
+  beat.position = data:byte()
+  --print('pos', position)
   local beaming  = data:byte()
   beaming = (beaming < 128) and beaming or (beaming - 128)
   data:skip(1)
@@ -405,6 +405,7 @@ ptb.readPosition = function (self, data)
     beat.note[i] = self:readNote(data)
     if i < itemCount then data:skip(2) end
   end
+  print('>', beat.duration, beat.position)
 
   beat.multiBarRest = (0 == itemCount) and multiBarRest or 1
   beat.vibrato = (data1 & 0x08 ~= 0) or (data1 & 0x10 ~= 0) 
@@ -434,9 +435,38 @@ ptb.readNote = function (self, data)
   end
   note.value = pos & 0x1f
   note.string = ((pos & 0xe0) >> 5) + 1
+  --print('val', note.value, note.string)
   note.tied = (simp & 0x01) ~= 0
   note.dead = (simp & 0x02) ~= 0
   return note
+end
+
+ptb.collectMeasures = function (self, section)
+  local meas = {}
+  for i, sec in ipairs(section) do
+    for j, staff in ipairs(section.staffs) do
+      local vs = {{}, {}}
+      local bar, beg = 1, 1
+      for k = 1, 2 do
+        local voice = staff[k]
+        local prev = nil
+        for p, beat in ipairs(voice) do
+          -- use difference in position as a marker
+          if prev and (beat.position - prev.position) > 1 then
+            -- #section, #staff, #bar, begin, len
+            table.insert(vs[k], {i, j, bar, beg, p - beg})
+            bar, beg = bar + 1, p
+          end
+          prev = p
+        end
+        -- the rest
+        if prev and #voice > beg then
+          table.insert(vs[k], {i, j, bar, beg, #voices - beg + 1})
+        end
+      end
+    end
+    -- align
+  end
 end
 
 --=======================================
